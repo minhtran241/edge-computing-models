@@ -2,8 +2,8 @@ import socketio
 import random
 import time
 from typing import List
-from constants import EDGE_NODE_ADDRESSES
-from models.Logger import Logger
+from utils.constants import EDGE_NODE_ADDRESSES
+from Logger import Logger
 
 
 class IoTClient:
@@ -48,7 +48,7 @@ class IoTClient:
                 "humidity": random.randint(60, 80),
             }
             # Emit data to edge node via Socket.IO
-            self.sio.emit("receive_data_from_iot_device", self.sio.sid, data)
+            self.sio.emit("receive_data", data)
             # Log the sent data
             self.logger.info(f"Sent data to edge node: {data}")
             # Wait for 5 seconds before sending the next data
@@ -75,6 +75,6 @@ class IoTClient:
 # Entry point for the script
 if __name__ == "__main__":
     # Create an instance of IoTClient with device ID "iot_device_1"
-    iot_client = IoTClient(device_id="iot_device_1")
+    iot_client = IoTClient(device_id="iot-1")
     # Run the IoT client
     iot_client.run()

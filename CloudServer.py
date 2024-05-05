@@ -1,8 +1,8 @@
 import eventlet
 import socketio
 from typing import Dict
-from models.Logger import Logger
-from helper_functions import get_device_id
+from Logger import Logger
+from utils.helper_functions import get_device_id
 
 
 class CloudServer:
@@ -22,7 +22,7 @@ class CloudServer:
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(name="CloudServer").get_logger()
 
-    def receive_data_from_edge_node(self, device_id: str, data: Dict[str, int]):
+    def process_edge_data(self, device_id: str, data: Dict[str, int]):
         """
         Receive data from an edge node.
 
@@ -61,9 +61,9 @@ class CloudServer:
             self.logger.info(f"Edge node {sid} disconnected")
 
         @self.sio.event
-        def receive_data_from_edge_node(sid, data):
+        def receive_data(sid, data):
             session = self.sio.get_session(sid)
-            self.receive_data_from_edge_node(session["device_id"], data)
+            self.process_edge_data(session["device_id"], data)
 
         server_thread.wait()
 

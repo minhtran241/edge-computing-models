@@ -1,8 +1,9 @@
 import eventlet
 import socketio
 from typing import Dict
-from models.Logger import Logger
-from constants import CLOUD_ADDRESS
+from Logger import Logger
+from utils.constants import CLOUD_ADDRESS
+from utils.helper_functions import get_device_id
 
 
 class EdgeNode:
@@ -32,20 +33,20 @@ class EdgeNode:
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
 
-    def receive_data_from_iot_device(self, sid: str, data: Dict[str, int]):
+    def process_iot_data(self, device_id: str, data: Dict[str, int]):
         """
         Receive data from an IoT device, process it, and send it to the cloud.
 
         Args:
-            sid (str): The session ID of the IoT device.
+            device_id (str): The identifier of the IoT device.
             data (Dict[str, int]): The data received from the IoT device.
         """
-        self.logger.info(f"Received data from IoT device {sid}: {data}")
+        self.logger.info(f"Received data from IoT device {device_id}: {data}")
         # Process the data
         data["temperature"] += 1
         data["humidity"] += 1
         # Send the processed data to the cloud
-        self.sio_client.emit("receive_data_from_edge_node", data)
+        self.sio_client.emit("receive_data", data)
 
     def run(self):
         """
@@ -66,34 +67,24 @@ class EdgeNode:
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
 
-    @classmethod
-    def register_event_handlers(cls, sio_server, logger):
-        """
-        Register event handlers for Socket.IO server.
-
-        Args:
-            sio_server: The Socket.IO server instance.
-            logger: The logger instance for logging events.
-        """
-
-        @sio_server.event
-        def connect(sid, environ):
-            logger.info(f"IoT device {sid} connected")
-
-        @sio_server.event
-        def disconnect(sid):
-            logger.info(f"IoT device {sid} disconnected")
-
-        @sio_server.event
-        def receive_data_from_iot_device(sid, data):
-            cls.receive_data_from_iot_device(sid, data)
-
 
 if __name__ == "__main__":
-    edge_node = EdgeNode(device_id="edge_1")
+    edge_node = EdgeNode(device_id="edge-1")
 
-    # Register event handlers
-    EdgeNode.register_event_handlers(edge_node.sio_server, edge_node.logger)
+    @edge_node.sio_server.event
+    def connect(sid, environ):
+        device_id = get_device_id(environ) or sid
+        edge_node.sio_server.save_session(sid, {"device_id": device_id})
+        edge_node.logger.info(f"IoT device {sid} connected")
+
+    @edge_node.sio_server.event
+    def disconnect(sid):
+        edge_node.logger.info(f"IoT device {sid} disconnected")
+
+    @edge_node.sio_server.event
+    def receive_data(sid, data):
+        session = edge_node.sio_server.get_session(sid)
+        edge_node.process_iot_data(session["device_id"], data)
 
     # Run the edge node
     edge_node.run()
