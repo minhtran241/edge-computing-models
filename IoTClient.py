@@ -1,54 +1,57 @@
 import socketio
 import random
 import time
+import threading
 from typing import List
 from utils.constants import EDGE_NODE_ADDRESSES
 from Logger import Logger
 
 
-class IoTClient:
+class IoTClient(threading.Thread):
     """
     Class representing an IoT client that sends data to edge nodes.
 
     Attributes:
         device_id (str): The unique identifier of the IoT device.
-        edge_node_addrs (List[str]): List of addresses of edge nodes.
+        edge_address (str): Address of the edge node.
         sio (socketio.Client): Socket.IO client instance.
         logger (Logger): Logger instance for logging.
 
     Methods:
         __init__: Initializes the IoTClient object.
-        send_data_to_edge_node: Sends data to edge nodes.
+        send: Sends data to edge nodes.
         run: Runs the IoT client.
+        stop_client: Stops the IoT client gracefully.
+        disconnect_from_edge: Disconnects from the edge node.
     """
 
-    def __init__(
-        self, device_id: str, edge_node_addrs: List[str] = EDGE_NODE_ADDRESSES
-    ):
+    def __init__(self, device_id: str, edge_address: str):
         """
         Initializes the IoTClient object.
 
         Args:
             device_id (str): The unique identifier of the IoT device.
-            edge_node_addrs (List[str], optional): List of addresses of edge nodes. Defaults to EDGE_NODE_ADDRESSES.
+            edge_address (str): The address of the edge node.
         """
+        super().__init__()
         self.device_id = device_id
-        self.edge_node_addrs = edge_node_addrs
+        self.edge_address = edge_address
         self.sio = socketio.Client()  # Socket.IO client
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
+        self.running = threading.Event()  # Event to control the client's running state
 
-    def send_data_to_edge_node(self):
+    def send(self):
         """
         Sends data to edge nodes.
         """
-        while True:
+        while self.running.is_set():
             # Generate random temperature and humidity data
             data = {
                 "temperature": random.randint(20, 30),
                 "humidity": random.randint(60, 80),
             }
             # Emit data to edge node via Socket.IO
-            self.sio.emit("receive_data", data)
+            self.sio.emit("recv", data)
             # Log the sent data
             self.logger.info(f"Sent data to edge node: {data}")
             # Wait for 5 seconds before sending the next data
@@ -59,22 +62,46 @@ class IoTClient:
         Runs the IoT client.
         """
         try:
-            # Connect to each edge node
-            for ena in self.edge_node_addrs:
-                # Connect to edge node with device ID as header
-                self.sio.connect(ena, headers={"device_id": self.device_id})
-                # Log successful connection to edge node
-                self.logger.info(f"Connected to edge node ({ena})")
+            # Connect to edge node with device ID as header
+            self.sio.connect(self.edge_address, headers={"device_id": self.device_id})
+            # Log successful connection to edge node
+            self.logger.info(f"Connected to edge node ({self.edge_address})")
             # Start sending data to edge nodes
-            self.send_data_to_edge_node()
+            self.send()
         except Exception as e:
             # Log any errors that occur during execution
             self.logger.error(f"An error occurred: {e}")
 
+    def stop_client(self):
+        """
+        Stops the IoT client gracefully.
+        """
+        self.running.clear()  # Clear the running event
+        self.disconnect_from_edge()  # Disconnect from the edge node
+        self.logger.info("IoT client stopped.")
+
+    def disconnect_from_edge(self):
+        """
+        Disconnects from the edge node.
+        """
+        self.sio.disconnect()
+        self.logger.info(f"Disconnected from edge node ({self.edge_address}).")
+
 
 # Entry point for the script
 if __name__ == "__main__":
-    # Create an instance of IoTClient with device ID "iot_device_1"
-    iot_client = IoTClient(device_id="iot-1")
-    # Run the IoT client
-    iot_client.run()
+    # Create IoTClient instances for each edge node
+    iot_clients: List[IoTClient] = []
+    for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
+        iot_client = IoTClient(
+            device_id=f"iot-{i+1}-{edge_address}", edge_address=edge_address
+        )
+        iot_clients.append(iot_client)
+        iot_client.start()
+
+    # Simulate running for a while
+    time.sleep(30)
+
+    # Stop all IoT clients
+    for iot_client in iot_clients:
+        iot_client.stop_client()

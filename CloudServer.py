@@ -61,7 +61,7 @@ class CloudServer:
             self.logger.info(f"Edge node {sid} disconnected")
 
         @self.sio.event
-        def receive_data(sid, data):
+        def recv(sid, data):
             session = self.sio.get_session(sid)
             self.process_edge_data(session["device_id"], data)
 

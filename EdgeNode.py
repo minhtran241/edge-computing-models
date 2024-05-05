@@ -46,7 +46,7 @@ class EdgeNode:
         data["temperature"] += 1
         data["humidity"] += 1
         # Send the processed data to the cloud
-        self.sio_client.emit("receive_data", data)
+        self.sio_client.emit("recv", data)
 
     def run(self):
         """
@@ -58,10 +58,6 @@ class EdgeNode:
                 self.cloud_addr, headers={"device_id": self.device_id}
             )
             self.logger.info(f"Connected to cloud ({self.cloud_addr})")
-            # Send initial data to the cloud
-            self.sio_client.emit(
-                "receive_data_from_edge_node", {"temperature": 0, "humidity": 0}
-            )
             # Start serving the WSGI app
             eventlet.wsgi.server(eventlet.listen(("", self.port)), self.app)
         except Exception as e:
@@ -82,7 +78,7 @@ if __name__ == "__main__":
         edge_node.logger.info(f"IoT device {sid} disconnected")
 
     @edge_node.sio_server.event
-    def receive_data(sid, data):
+    def recv(sid, data):
         session = edge_node.sio_server.get_session(sid)
         edge_node.process_iot_data(session["device_id"], data)
 
