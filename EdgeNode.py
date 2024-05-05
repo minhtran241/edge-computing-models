@@ -1,9 +1,9 @@
 import eventlet
 import socketio
-from typing import Dict
+from typing import Dict, Any
 from Logger import Logger
 from utils.constants import CLOUD_ADDRESS
-from utils.helper_functions import get_device_id
+from utils.helper_functions import get_device_id, count_word_occurrences
 
 
 class EdgeNode:
@@ -33,7 +33,7 @@ class EdgeNode:
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
 
-    def process_iot_data(self, device_id: str, data: Dict[str, int]):
+    def process_iot_data(self, device_id: str, data: Dict[Any, Any]):
         """
         Receive data from an IoT device, process it, and send it to the cloud.
 
@@ -43,10 +43,11 @@ class EdgeNode:
         """
         self.logger.info(f"Received data from IoT device {device_id}: {data}")
         # Process the data
-        data["temperature"] += 1
-        data["humidity"] += 1
+        word = data.get("word", "")
+        text = data.get("text", "")
+        count = count_word_occurrences(text, word)
         # Send the processed data to the cloud
-        self.sio_client.emit("recv", data)
+        self.sio_client.emit("recv", data=count)
 
     def run(self):
         """

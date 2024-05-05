@@ -2,8 +2,8 @@ import socketio
 import random
 import time
 import threading
-from typing import List
-from utils.constants import EDGE_NODE_ADDRESSES
+from typing import List, Any
+from utils.constants import EDGE_NODE_ADDRESSES, RANDOM_TEXT
 from Logger import Logger
 
 
@@ -25,7 +25,7 @@ class IoTClient(threading.Thread):
         disconnect_from_edge: Disconnects from the edge node.
     """
 
-    def __init__(self, device_id: str, edge_address: str):
+    def __init__(self, device_id: str, edge_address: str, data: Any):
         """
         Initializes the IoTClient object.
 
@@ -36,24 +36,22 @@ class IoTClient(threading.Thread):
         super().__init__()
         self.device_id = device_id
         self.edge_address = edge_address
+        self.data = data
         self.sio = socketio.Client()  # Socket.IO client
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
         self.running = threading.Event()  # Event to control the client's running state
+        self.running.set()  # Set the event to True initially
 
     def send(self):
         """
         Sends data to edge nodes.
         """
+        self.logger.info(self.running.is_set())
         while self.running.is_set():
-            # Generate random temperature and humidity data
-            data = {
-                "temperature": random.randint(20, 30),
-                "humidity": random.randint(60, 80),
-            }
             # Emit data to edge node via Socket.IO
-            self.sio.emit("recv", data)
+            self.sio.emit("recv", self.data)
             # Log the sent data
-            self.logger.info(f"Sent data to edge node: {data}")
+            self.logger.info(f"Sent data to edge node: {self.data}")
             # Wait for 5 seconds before sending the next data
             time.sleep(5)
 
@@ -90,11 +88,21 @@ class IoTClient(threading.Thread):
 
 # Entry point for the script
 if __name__ == "__main__":
+    # Split the random text into len(EDGE_NODE_ADDRESSES) chunks for each edge node
+    text_chunks = [
+        RANDOM_TEXT[i : i + len(RANDOM_TEXT) // len(EDGE_NODE_ADDRESSES)]
+        for i in range(
+            0, len(RANDOM_TEXT), len(RANDOM_TEXT) // len(EDGE_NODE_ADDRESSES)
+        )
+    ]
+    word = "the"
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []
     for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
         iot_client = IoTClient(
-            device_id=f"iot-{i+1}-{edge_address}", edge_address=edge_address
+            device_id=f"iot-{i+1}-{edge_address}",
+            edge_address=edge_address,
+            data={"text": text_chunks[i], "word": word},
         )
         iot_clients.append(iot_client)
         iot_client.start()
