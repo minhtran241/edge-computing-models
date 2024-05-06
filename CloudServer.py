@@ -1,6 +1,6 @@
 import eventlet
 import socketio
-from typing import Dict, Any
+from typing import Any
 from Logger import Logger
 from utils.helper_functions import get_device_id
 
@@ -21,9 +21,9 @@ class CloudServer:
         self.sio = socketio.Server()
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(name="CloudServer").get_logger()
-        self.result = 0
+        # self.result = 0
 
-    def process_edge_data(self, device_id: str, data: int):
+    def process_edge_data(self, device_id: str, data: Any):
         """
         Receive data from an edge node.
 
@@ -31,10 +31,9 @@ class CloudServer:
             device_id (str): The identifier of the edge node.
             data int: The processed data received from the edge node.
         """
-        self.logger.info(f"Received data from edge node {device_id}: {data}")
-        # Get the result from the edge nodes and store it
-        self.result += data
-        self.logger.info(f"Updated result: {self.result}")
+        self.logger.info(
+            f"Received data from edge node {device_id}: {len(data)} image results"
+        )
 
     def run_server(self):
         """

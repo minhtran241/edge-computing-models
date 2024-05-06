@@ -1,9 +1,9 @@
 import socketio
-import random
 import time
 import threading
 from typing import List, Any
-from utils.constants import EDGE_NODE_ADDRESSES, RANDOM_TEXT
+from utils.constants import EDGE_NODE_ADDRESSES
+from utils.helper_functions import get_img_batches
 from Logger import Logger
 
 
@@ -47,11 +47,12 @@ class IoTClient(threading.Thread):
         Sends data to edge nodes.
         """
         self.logger.info(self.running.is_set())
-        while self.running.is_set():
+        # while self.running.is_set():
+        for _ in range(1):
             # Emit data to edge node via Socket.IO
             self.sio.emit("recv", self.data)
             # Log the sent data
-            self.logger.info(f"Sent data to edge node: {self.data}")
+            self.logger.info(f"Sent data to edge node: {len(self.data)} image paths")
             # Wait for 5 seconds before sending the next data
             time.sleep(5)
 
@@ -88,21 +89,18 @@ class IoTClient(threading.Thread):
 
 # Entry point for the script
 if __name__ == "__main__":
-    # Split the random text into len(EDGE_NODE_ADDRESSES) chunks for each edge node
-    text_chunks = [
-        RANDOM_TEXT[i : i + len(RANDOM_TEXT) // len(EDGE_NODE_ADDRESSES)]
-        for i in range(
-            0, len(RANDOM_TEXT), len(RANDOM_TEXT) // len(EDGE_NODE_ADDRESSES)
-        )
-    ]
-    word = "the"
+    # Split the images into len(IMG_PATHS)/len(EDGE_NODE_ADDRESSES) parts for each edge node
+    data = get_img_batches(
+        dir="coco128/images/train2017",
+        num_batches=len(EDGE_NODE_ADDRESSES),
+    )
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []
     for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
         iot_client = IoTClient(
             device_id=f"iot-{i+1}-{edge_address}",
             edge_address=edge_address,
-            data={"text": text_chunks[i], "word": word},
+            data=data[i],
         )
         iot_clients.append(iot_client)
         iot_client.start()

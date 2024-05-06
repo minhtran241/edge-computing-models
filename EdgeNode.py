@@ -1,9 +1,10 @@
 import eventlet
 import socketio
-from typing import Dict, Any
+from typing import Any
+from ultralytics import YOLO
 from Logger import Logger
 from utils.constants import CLOUD_ADDRESS
-from utils.helper_functions import get_device_id, count_word_occurrences
+from utils.helper_functions import get_device_id, predict_images
 
 
 class EdgeNode:
@@ -32,8 +33,9 @@ class EdgeNode:
         self.sio_server = socketio.Server()
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
+        self.model = YOLO("yolov8m.pt")
 
-    def process_iot_data(self, device_id: str, data: Dict[Any, Any]):
+    def process_iot_data(self, device_id: str, data: Any):
         """
         Receive data from an IoT device, process it, and send it to the cloud.
 
@@ -41,13 +43,13 @@ class EdgeNode:
             device_id (str): The identifier of the IoT device.
             data (Dict[str, int]): The data received from the IoT device.
         """
-        self.logger.info(f"Received data from IoT device {device_id}: {data}")
+        self.logger.info(
+            f"Received data from IoT device {device_id}: {len(data)} image paths"
+        )
         # Process the data
-        word = data.get("word", "")
-        text = data.get("text", "")
-        count = count_word_occurrences(text, word)
+        data = predict_images(list(data), self.model)
         # Send the processed data to the cloud
-        self.sio_client.emit("recv", data=count)
+        self.sio_client.emit("recv", data=data)
 
     def run(self):
         """
