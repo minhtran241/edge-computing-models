@@ -21,7 +21,7 @@ class CloudServer:
         self.sio = socketio.Server()
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(name="CloudServer").get_logger()
-        # self.result = 0
+        self.result = 0
 
     def process_edge_data(self, device_id: str, data: Any):
         """
@@ -34,6 +34,8 @@ class CloudServer:
         self.logger.info(
             f"Received data from edge node {device_id}: {len(data)} image results"
         )
+        self.result += len(data)
+        self.logger.info(f"Total results: {self.result}")
 
     def run_server(self):
         """

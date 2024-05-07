@@ -48,11 +48,13 @@ class IoTClient(threading.Thread):
         """
         self.logger.info(self.running.is_set())
         # while self.running.is_set():
-        for _ in range(1):
+        for i, data_batch in enumerate(self.data):
             # Emit data to edge node via Socket.IO
-            self.sio.emit("recv", self.data)
+            self.sio.emit("recv", data=data_batch)
             # Log the sent data
-            self.logger.info(f"Sent data to edge node: {len(self.data)} image paths")
+            self.logger.info(
+                f"Sent batch {i+1}: {len(data_batch)} images to edge node ({self.edge_address})"
+            )
             # Wait for 5 seconds before sending the next data
             time.sleep(5)
 
@@ -89,11 +91,12 @@ class IoTClient(threading.Thread):
 
 # Entry point for the script
 if __name__ == "__main__":
-    # Split the images into len(IMG_PATHS)/len(EDGE_NODE_ADDRESSES) parts for each edge node
+    # Split the images into batches for each edge node
     data = get_img_batches(
         dir="coco128/images/train2017",
-        num_batches=len(EDGE_NODE_ADDRESSES),
-    )
+        num_parts=len(EDGE_NODE_ADDRESSES),
+        max_batch_size=10,
+    )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []
     for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
@@ -105,9 +108,14 @@ if __name__ == "__main__":
         iot_clients.append(iot_client)
         iot_client.start()
 
-    # Simulate running for a while
-    time.sleep(30)
+    # # Simulate running for a while
+    # time.sleep(30)
 
-    # Stop all IoT clients
+    # # Stop all IoT clients
+    # for iot_client in iot_clients:
+    #     iot_client.stop_client()
+
+    # # Wait for all IoT clients to finish
     for iot_client in iot_clients:
-        iot_client.stop_client()
+        iot_client.join()
+    print("All IoT clients finished.")
