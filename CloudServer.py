@@ -69,7 +69,7 @@ class CloudServer:
             device_id = session["device_id"]
             # Print the statistics for the edge node upon disconnection as a table with the following columns: Device ID, Total Transmission Time, Total Processing Time
             self.logger.info(
-                f"Edge node {device_id} disconnected. Transmission time: {self.transtimes.get(device_id, 0):.2f}s, Processing time: {self.proctimes.get(device_id, 0):.2f}s"
+                f"Edge node {sid} disconnected. Transmission time: {self.transtimes.get(device_id, 0):.2f}s, Processing time: {self.proctimes.get(device_id, 0):.2f}s"
             )
 
         @self.sio.event
