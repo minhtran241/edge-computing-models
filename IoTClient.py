@@ -55,7 +55,7 @@ class IoTClient(threading.Thread):
             self.sio.emit("recv", data=data_batch)
             # Log the sent data
             self.logger.info(
-                f"Sent batch {i+1}: {len(data_batch)} images to edge node ({self.edge_address})"
+                f"Sent batch {i}: {len(data_batch)} images to edge node ({self.edge_address})"
             )
         # IoT device to edge node transmission time
         self.transtime += time.time() - start_time

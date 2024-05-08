@@ -61,7 +61,7 @@ class CloudServer:
         def connect(sid, environ):
             device_id = get_device_id(environ) or sid
             self.sio.save_session(sid, {"device_id": device_id})
-            self.logger.info(f"Edge node {sid} connected")
+            self.logger.info(f"Edge node {device_id} connected")
 
         @self.sio.event
         def disconnect(sid):
@@ -69,7 +69,7 @@ class CloudServer:
             device_id = session["device_id"]
             # Print the statistics for the edge node upon disconnection as a table with the following columns: Device ID, Total Transmission Time, Total Processing Time
             self.logger.info(
-                f"Edge node {sid} disconnected. Transmission time: {self.transtimes.get(device_id, 0):.2f}s, Processing time: {self.proctimes.get(device_id, 0):.2f}s"
+                f"Edge node {device_id} disconnected. Transmission time: {self.transtimes.get(device_id, 0):.2f}s, Processing time: {self.proctimes.get(device_id, 0):.2f}s"
             )
 
         @self.sio.event
@@ -87,6 +87,9 @@ class CloudServer:
             # Update the transmission time for the edge node
             self.transtimes.setdefault(device_id, 0)
             self.transtimes[device_id] = data
+            self.logger.info(
+                f"Accumulated transmission time for edge node {device_id}: {data:.2f}s"
+            )
 
         @self.sio.event
         def accumulate_proctime(sid, data):
@@ -95,6 +98,9 @@ class CloudServer:
             # Update the processing time for the edge node
             self.proctimes.setdefault(device_id, 0)
             self.proctimes[device_id] = data
+            self.logger.info(
+                f"Accumulated processing time for edge node {device_id}: {data:.2f}s"
+            )
 
 
 if __name__ == "__main__":
