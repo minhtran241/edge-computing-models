@@ -55,10 +55,13 @@ class EdgeNode:
         end_processing = time.time()
         self.processing_time += end_processing - start_processing
         # Send the processed data to the cloud
-        start_transmission = time.time()
-        self.sio_client.emit("recv", data=data)
-        end_transmission = time.time()
-        self.transmission_time += end_transmission - start_transmission
+        sent_data = {
+            "start_transmission": time.time(),
+            "prev_ttime": self.transmission_time,
+            "prev_ptime": self.processing_time,
+            "data": data,
+        }
+        self.sio_client.emit("recv", data=sent_data)
 
     def run(self):
         """
@@ -89,13 +92,21 @@ if __name__ == "__main__":
     def disconnect(sid):
         edge_node.logger.info(f"IoT device {sid} disconnected")
         edge_node.logger.info(
-            f"Total processing time: {edge_node.processing_time:.4f} seconds"
+            f"Transmission time: {edge_node.transmission_time:.4f} seconds"
+        )
+        edge_node.logger.info(
+            f"Processing time: {edge_node.processing_time:.4f} seconds"
         )
 
     @edge_node.sio_server.event
     def recv(sid, data):
         session = edge_node.sio_server.get_session(sid)
-        edge_node.process_iot_data(session["device_id"], data)
+        prev_ttime = data.get("prev_ttime", 0)
+        # Intermediate transmission time
+        itt = time.time() - prev_ttime
+        edge_node.transmission_time += itt
+        data_batch = data.get("data", [])
+        edge_node.process_iot_data(session["device_id"], data_batch)
 
     # Run the edge node
     edge_node.run()

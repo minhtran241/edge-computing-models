@@ -39,6 +39,7 @@ class IoTClient(threading.Thread):
         self.data = data
         self.sio = socketio.Client()  # Socket.IO client
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
+        self.transmission_times = {}
         self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially
 
@@ -46,18 +47,17 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        start_transmission = time.time()
         for i, data_batch in enumerate(self.data):
             # Emit data to edge node via Socket.IO
-            self.sio.emit("recv", data=data_batch)
+            sent_data = {
+                "prev_ttime": time.time(),
+                "data": data_batch,
+            }
+            self.sio.emit("recv", data=sent_data)
             # Log the sent data
             self.logger.info(
                 f"Sent batch {i+1}: {len(data_batch)} images to edge node ({self.edge_address})"
             )
-        end_transmission = time.time()
-        self.logger.info(
-            f"Transmission time: {end_transmission - start_transmission:.4f} seconds"
-        )
 
     def run(self):
         """
@@ -89,6 +89,10 @@ class IoTClient(threading.Thread):
         self.sio.disconnect()
         self.logger.info(f"Disconnected from edge node ({self.edge_address}).")
 
+    # Stop the IoT client when the thread is stopped
+    def __del__(self):
+        self.stop_client()
+
 
 # Entry point for the script
 if __name__ == "__main__":
@@ -109,9 +113,6 @@ if __name__ == "__main__":
         iot_clients.append(iot_client)
         iot_client.start()
 
-    # # Simulate running for a while
-    # time.sleep(30)
-
     # # Stop all IoT clients
     # for iot_client in iot_clients:
     #     iot_client.stop_client()
@@ -119,7 +120,3 @@ if __name__ == "__main__":
     # # Wait for all IoT clients to finish
     for iot_client in iot_clients:
         iot_client.join()
-
-    # Wait for About 100s
-    time.sleep(100)
-    # print("All IoT clients finished.")
