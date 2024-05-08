@@ -1,5 +1,6 @@
 import eventlet
 import socketio
+import time
 from typing import Any
 from ultralytics import YOLO
 from Logger import Logger
@@ -34,6 +35,7 @@ class EdgeNode:
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
         self.model = YOLO("yolov8m.pt")
+        self.processing_time = 0
 
     def process_iot_data(self, device_id: str, data: Any):
         """
@@ -46,10 +48,18 @@ class EdgeNode:
         self.logger.info(
             f"Received data from IoT device {device_id}: {len(data)} image paths"
         )
+        start_processing = time.time()
         # Process the data
         data = predict_images(list(data), self.model)
+        end_processing = time.time()
+        self.processing_time += end_processing - start_processing
         # Send the processed data to the cloud
+        start_transmission = time.time()
         self.sio_client.emit("recv", data=data)
+        end_transmission = time.time()
+        self.logger.info(
+            f"Transmission time: {end_transmission - start_transmission:.4f} seconds"
+        )
 
     def run(self):
         """
@@ -79,6 +89,9 @@ if __name__ == "__main__":
     @edge_node.sio_server.event
     def disconnect(sid):
         edge_node.logger.info(f"IoT device {sid} disconnected")
+        edge_node.logger.info(
+            f"Total processing time: {edge_node.processing_time:.4f} seconds"
+        )
 
     @edge_node.sio_server.event
     def recv(sid, data):
