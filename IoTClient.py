@@ -95,7 +95,7 @@ if __name__ == "__main__":
     data = get_img_batches(
         dir="coco128/images/train2017",
         num_parts=len(EDGE_NODE_ADDRESSES),
-        max_batch_size=10,
+        max_batch_size=3,
     )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []

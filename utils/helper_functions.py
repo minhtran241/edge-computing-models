@@ -45,6 +45,7 @@ def predict_images(img_batch: List[str], model: YOLO) -> List[Dict[str, Any]]:
     ]
 
 
+# Each edge node is raspberry pi 4 so for processing YOLO, 3.1 FPS is a good value. This function will have default batch size of 3 be
 def get_img_batches(
     dir: str, num_parts: int, max_batch_size: int
 ) -> List[List[List[str]]]:
