@@ -1,3 +1,4 @@
+import sys
 import eventlet
 import socketio
 import time
@@ -76,7 +77,9 @@ class EdgeNode:
 
 
 if __name__ == "__main__":
-    edge_node = EdgeNode(device_id="edge-1")
+    # Get arguments from the command line (device ID)
+    device_id = sys.argv[1] if len(sys.argv) > 1 else "edge-1"
+    edge_node = EdgeNode(device_id=device_id)
 
     @edge_node.sio_server.event
     def connect(sid, environ):
