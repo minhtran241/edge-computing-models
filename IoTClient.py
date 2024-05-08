@@ -52,14 +52,15 @@ class IoTClient(threading.Thread):
         start_time = time.time()
         for i, data_batch in enumerate(self.data):
             # Emit data to edge node via Socket.IO
-            self.sio.emit("recv", data=data_batch)
+            self.sio.emit("recv", data={"acc_transtime": None, "data": data_batch})
             # Log the sent data
             self.logger.info(
                 f"Sent batch {i}: {len(data_batch)} images to edge node ({self.edge_address})"
             )
         # IoT device to edge node transmission time
         self.transtime += time.time() - start_time
-        self.sio.emit("accumulate_transtime", data=self.transtime)
+        # Add flag to accumulate transmission time
+        self.sio.emit("recv", data={"acc_transtime": self.transtime, "data": None})
 
     def run(self):
         """
@@ -98,27 +99,35 @@ class IoTClient(threading.Thread):
 
 # Entry point for the script
 if __name__ == "__main__":
-    # Split the images into batches for each edge node. Edge node is Raspberry Pi 4 so proper batch size is 3
-    data = get_img_batches(
-        dir="coco128/images/train2017",
-        num_parts=len(EDGE_NODE_ADDRESSES),
-        max_batch_size=8,
-    )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
-    # Create IoTClient instances for each edge node
-    iot_clients: List[IoTClient] = []
-    for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
-        iot_client = IoTClient(
-            device_id=f"iot-{i+1}-{edge_address}",
-            edge_address=edge_address,
-            data=data[i],
-        )
-        iot_clients.append(iot_client)
-        iot_client.start()
+    try:
+        # Split the images into batches for each edge node. Edge node is Raspberry Pi 4 so proper batch size is 3
+        data = get_img_batches(
+            dir="coco128/images/train2017",
+            num_parts=len(EDGE_NODE_ADDRESSES),
+            max_batch_size=8,
+        )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
+        # Create IoTClient instances for each edge node
+        iot_clients: List[IoTClient] = []
+        for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
+            iot_client = IoTClient(
+                device_id=f"iot-{i+1}-{edge_address}",
+                edge_address=edge_address,
+                data=data[i],
+            )
+            iot_clients.append(iot_client)
+            iot_client.start()
 
-    # Keep the socket.io client running because the server is event-driven
-    while True:
-        time.sleep(1)
+        # Keep the socket.io client running because the server is event-driven
+        while True:
+            time.sleep(1)
 
-    # # Wait for all IoT clients to finish
-    # for iot_client in iot_clients:
-    #     iot_client.join()
+        # # Wait for all IoT clients to finish
+        # for iot_client in iot_clients:
+        #     iot_client.join()
+    except KeyboardInterrupt or SystemExit or Exception as e:
+        if isinstance(e, Exception):
+            print(f"An error occurred: {e}")
+        # Stop all IoT clients when the script is interrupted
+        for iot_client in iot_clients:
+            iot_client.stop_client()
+        print("IoT clients stopped.")

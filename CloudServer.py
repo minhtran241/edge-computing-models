@@ -1,5 +1,6 @@
 import eventlet
 import socketio
+import pandas as pd
 from typing import Any
 from Logger import Logger
 from utils.helper_functions import get_device_id
@@ -39,6 +40,35 @@ class CloudServer:
         self.result += len(data)
         self.logger.info(f"Total results: {self.result}")
 
+    # Print stats of specific edge node
+    def _print_statistics(self, device_id: str):
+        """
+        Print the statistics for each edge node upon disconnection.
+        """
+        df = pd.DataFrame(
+            {
+                "Device ID": [device_id],
+                "Total Transmission Time": [self.transtimes.get(device_id, 0)],
+                "Total Processing Time": [self.proctimes.get(device_id, 0)],
+            }
+        )
+        print(df.to_markdown())
+        self.logger.info(f"Edge node {device_id} disconnected")
+
+    # Print all stats of all edge nodes
+    def print_statistics(self):
+        """
+        Print the statistics for all edge nodes.
+        """
+        df = pd.DataFrame(
+            {
+                "Device ID": list(self.transtimes.keys()),
+                "Total Transmission Time": list(self.transtimes.values()),
+                "Total Processing Time": list(self.proctimes.values()),
+            }
+        )
+        print(df.to_markdown())
+
     def run_server(self):
         """
         Run the cloud server.
@@ -61,48 +91,35 @@ class CloudServer:
         def connect(sid, environ):
             device_id = get_device_id(environ) or sid
             self.sio.save_session(sid, {"device_id": device_id})
-            self.logger.info(f"Edge node {device_id} connected")
+            self.logger.info(f"Edge node {device_id} connected, session ID: {sid}")
 
         @self.sio.event
         def disconnect(sid):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            # Print the statistics for the edge node upon disconnection as a table with the following columns: Device ID, Total Transmission Time, Total Processing Time
-            self.logger.info(
-                f"Edge node {device_id} disconnected. Transmission time: {self.transtimes.get(device_id, 0):.2f}s, Processing time: {self.proctimes.get(device_id, 0):.2f}s"
-            )
+            self._print_statistics(device_id)
 
         @self.sio.event
         def recv(sid, data):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            self.process_edge_data(device_id, data)
+            if "transtime" in data or "proctime" in data:
+                self.transtimes[device_id] = data.get("transtime", 0)
+                self.proctimes[device_id] = data.get("proctime", 0)
+                return
+            self.process_edge_data(device_id, data["data"])
 
         server_thread.wait()
 
-        @self.sio.event
-        def accumulate_transtime(sid, data):
-            session = self.sio.get_session(sid)
-            device_id = session["device_id"]
-            # Update the transmission time for the edge node
-            self.transtimes.setdefault(device_id, 0)
-            self.transtimes[device_id] = data
-            self.logger.info(
-                f"Accumulated transmission time for edge node {device_id}: {data:.2f}s"
-            )
-
-        @self.sio.event
-        def accumulate_proctime(sid, data):
-            session = self.sio.get_session(sid)
-            device_id = session["device_id"]
-            # Update the processing time for the edge node
-            self.proctimes.setdefault(device_id, 0)
-            self.proctimes[device_id] = data
-            self.logger.info(
-                f"Accumulated processing time for edge node {device_id}: {data:.2f}s"
-            )
-
 
 if __name__ == "__main__":
-    cloud = CloudServer()
-    cloud.run()
+    try:
+        cloud = CloudServer()
+        cloud.run()
+    except KeyboardInterrupt or SystemExit or Exception as e:
+        if isinstance(e, Exception):
+            cloud.logger.error(f"An error occurred: {e}")
+        cloud.print_statistics()
+        cloud.logger.info("Cloud server stopped.")
+        cloud.sio.shutdown()
+        exit()

@@ -55,10 +55,19 @@ class EdgeNode:
         data = predict_images(list(data), self.model)
         self.proctime += time.time() - start_time
         start_time = time.time()
-        self.sio_client.emit("recv", data=data)
+        self.sio_client.emit(
+            "recv",
+            data={"data": data},
+        )
         self.transtime += time.time() - start_time
-        self.sio_client.emit("accumulate_transtime", self.transtime)
-        self.sio_client.emit("accumulate_proctime", self.proctime)
+        self.sio_client.emit(
+            "recv",
+            data={
+                "transtime": self.transtime,
+                "proctime": self.proctime,
+                "data": None,
+            },
+        )
 
     def run(self):
         """
@@ -85,19 +94,34 @@ if __name__ == "__main__":
     def connect(sid, environ):
         device_id = get_device_id(environ) or sid
         edge_node.sio_server.save_session(sid, {"device_id": device_id})
-        edge_node.logger.info(f"IoT device {sid} connected")
+        edge_node.logger.info(f"IoT device {device_id} connected, session ID: {sid}")
 
     @edge_node.sio_server.event
     def disconnect(sid):
-        edge_node.logger.info(f"IoT device {sid} disconnected")
+        session = edge_node.sio_server.get_session(sid)
+        device_id = session["device_id"]
+        edge_node.logger.info(f"IoT device {device_id} disconnected")
 
     @edge_node.sio_server.event
     def recv(sid, data):
         session = edge_node.sio_server.get_session(sid)
-        edge_node.process_iot_data(session["device_id"], data)
+        device_id = session["device_id"]
+        # Check if the data is transtime or data batch
+        if "acc_transtime" in data and data["acc_transtime"] is not None:
+            edge_node.transtime += data["acc_transtime"]
+            edge_node.logger.info(
+                f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
+            )
+            return
+        edge_node.process_iot_data(session["device_id"], data["data"])
 
-    def accumulate_transtime(sid, data):
-        edge_node.transtime += data
-
-    # Run the edge node
-    edge_node.run()
+    try:
+        # Run the edge node
+        edge_node.run()
+    except KeyboardInterrupt or SystemExit or Exception as e:
+        if isinstance(e, Exception):
+            edge_node.logger.error(f"An error occurred: {e}")
+        edge_node.logger.info("Edge node stopped.")
+        edge_node.sio_client.disconnect()
+        edge_node.sio_server.shutdown()
+        sys.exit(0)
