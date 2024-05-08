@@ -38,8 +38,10 @@ class IoTClient(threading.Thread):
         self.edge_address = edge_address
         self.data = data
         self.sio = socketio.Client()  # Socket.IO client
+        self.transtime = (
+            0  # Transmission time from IoT device to edge node (accumulated)
+        )
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
-        self.transmission_times = {}
         self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially
 
@@ -47,17 +49,17 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
+        start_time = time.time()
         for i, data_batch in enumerate(self.data):
             # Emit data to edge node via Socket.IO
-            sent_data = {
-                "prev_ttime": time.time(),
-                "data": data_batch,
-            }
-            self.sio.emit("recv", data=sent_data)
+            self.sio.emit("recv", data=data_batch)
             # Log the sent data
             self.logger.info(
                 f"Sent batch {i+1}: {len(data_batch)} images to edge node ({self.edge_address})"
             )
+        # IoT device to edge node transmission time
+        self.transtime += time.time() - start_time
+        self.sio.emit("accumulate_transtime", data=self.transtime)
 
     def run(self):
         """
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     data = get_img_batches(
         dir="coco128/images/train2017",
         num_parts=len(EDGE_NODE_ADDRESSES),
-        max_batch_size=3,
+        max_batch_size=8,
     )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []
@@ -113,10 +115,10 @@ if __name__ == "__main__":
         iot_clients.append(iot_client)
         iot_client.start()
 
-    # # Stop all IoT clients
-    # for iot_client in iot_clients:
-    #     iot_client.stop_client()
+    # Keep the socket.io client running because the server is event-driven
+    while True:
+        time.sleep(1)
 
     # # Wait for all IoT clients to finish
-    for iot_client in iot_clients:
-        iot_client.join()
+    # for iot_client in iot_clients:
+    #     iot_client.join()

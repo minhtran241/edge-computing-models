@@ -35,8 +35,8 @@ class EdgeNode:
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
         self.model = YOLO("yolov8m.pt")
-        self.transmission_time = 0
-        self.processing_time = 0
+        self.transtime = 0
+        self.proctime = 0
 
     def process_iot_data(self, device_id: str, data: Any):
         """
@@ -49,19 +49,15 @@ class EdgeNode:
         self.logger.info(
             f"Received data from IoT device {device_id}: {len(data)} image paths"
         )
-        start_processing = time.time()
+        start_time = time.time()
         # Process the data
         data = predict_images(list(data), self.model)
-        end_processing = time.time()
-        self.processing_time += end_processing - start_processing
-        # Send the processed data to the cloud
-        sent_data = {
-            "start_transmission": time.time(),
-            "prev_ttime": self.transmission_time,
-            "prev_ptime": self.processing_time,
-            "data": data,
-        }
-        self.sio_client.emit("recv", data=sent_data)
+        self.proctime += time.time() - start_time
+        start_time = time.time()
+        self.sio_client.emit("recv", data=data)
+        self.transtime += time.time() - start_time
+        self.sio_client.emit("accumulate_transtime", self.transtime)
+        self.sio_client.emit("accumulate_proctime", self.proctime)
 
     def run(self):
         """
@@ -91,22 +87,14 @@ if __name__ == "__main__":
     @edge_node.sio_server.event
     def disconnect(sid):
         edge_node.logger.info(f"IoT device {sid} disconnected")
-        edge_node.logger.info(
-            f"Transmission time: {edge_node.transmission_time:.4f} seconds"
-        )
-        edge_node.logger.info(
-            f"Processing time: {edge_node.processing_time:.4f} seconds"
-        )
 
     @edge_node.sio_server.event
     def recv(sid, data):
         session = edge_node.sio_server.get_session(sid)
-        prev_ttime = data.get("prev_ttime", 0)
-        # Intermediate transmission time
-        itt = time.time() - prev_ttime
-        edge_node.transmission_time += itt
-        data_batch = data.get("data", [])
-        edge_node.process_iot_data(session["device_id"], data_batch)
+        edge_node.process_iot_data(session["device_id"], data)
+
+    def accumulate_transtime(sid, data):
+        edge_node.transtime += data
 
     # Run the edge node
     edge_node.run()
