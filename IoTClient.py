@@ -117,6 +117,9 @@ if __name__ == "__main__":
     #     iot_client.stop_client()
 
     # # Wait for all IoT clients to finish
-    # for iot_client in iot_clients:
-    #     iot_client.join()
+    for iot_client in iot_clients:
+        iot_client.join()
+
+    # Wait for About 100s
+    time.sleep(100)
     # print("All IoT clients finished.")

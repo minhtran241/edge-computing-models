@@ -35,6 +35,7 @@ class EdgeNode:
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
         self.model = YOLO("yolov8m.pt")
+        self.transmission_time = 0
         self.processing_time = 0
 
     def process_iot_data(self, device_id: str, data: Any):
@@ -57,9 +58,7 @@ class EdgeNode:
         start_transmission = time.time()
         self.sio_client.emit("recv", data=data)
         end_transmission = time.time()
-        self.logger.info(
-            f"Transmission time: {end_transmission - start_transmission:.4f} seconds"
-        )
+        self.transmission_time += end_transmission - start_transmission
 
     def run(self):
         """
