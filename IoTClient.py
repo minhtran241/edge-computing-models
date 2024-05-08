@@ -92,11 +92,11 @@ class IoTClient(threading.Thread):
 
 # Entry point for the script
 if __name__ == "__main__":
-    # Split the images into batches for each edge node
+    # Split the images into batches for each edge node. Edge node is Raspberry Pi 4 so proper batch size is 3
     data = get_img_batches(
         dir="coco128/images/train2017",
         num_parts=len(EDGE_NODE_ADDRESSES),
-        max_batch_size=4,
+        max_batch_size=3,
     )  # [[[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]], [[img1, img2], [img1, img2]]]
     # Create IoTClient instances for each edge node
     iot_clients: List[IoTClient] = []
@@ -117,6 +117,6 @@ if __name__ == "__main__":
     #     iot_client.stop_client()
 
     # # Wait for all IoT clients to finish
-    for iot_client in iot_clients:
-        iot_client.join()
-    print("All IoT clients finished.")
+    # for iot_client in iot_clients:
+    #     iot_client.join()
+    # print("All IoT clients finished.")
