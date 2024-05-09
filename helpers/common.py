@@ -1,5 +1,5 @@
 import os
-from typing import List, Any
+from typing import List, Any, Union
 
 
 def get_device_id(environ: Any) -> str:
@@ -37,7 +37,7 @@ def partition_images(dir: str, num_parts: int) -> List[List[str]]:
     return data_parts
 
 
-def image_to_bytes(filename: str | bytes) -> bytes:
+def image_to_bytes(filename: Union[str, bytes]) -> bytes:
     """
     Convert an image to bytes.
 
