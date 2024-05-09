@@ -3,7 +3,7 @@ import socketio
 import pandas as pd
 from typing import Any
 from Logger import Logger
-from utils.helper_functions import get_device_id
+from helpers.common import get_device_id
 from tabulate import tabulate
 
 
@@ -104,11 +104,11 @@ class CloudServer:
         def recv(sid, data):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            if "transtime" in data and "proctime" in data:
+            if "data" in data and data["data"] is not None:
+                self.process_edge_data(device_id, data["data"])
+            elif "transtime" in data and "proctime" in data:
                 self.transtimes[device_id] = data["transtime"]
                 self.proctimes[device_id] = data["proctime"]
-            elif "data" in data:
-                self.process_edge_data(device_id, data["data"])
 
         server_thread.wait()
 

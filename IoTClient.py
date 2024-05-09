@@ -1,29 +1,16 @@
 import os
 import socketio
 import time
+import threading
 from typing import List, Any
-from threading import Thread, Lock, Event
-from utils.constants import EDGE_NODE_ADDRESSES, IMAGE_DIR
-from utils.helper_functions import partition_images, image_to_bytes
+from constants import EDGE_NODE_ADDRESSES, IMAGE_DIR
+from helpers.common import partition_images, image_to_bytes
 from Logger import Logger
 
 
-class IoTClient(Thread):
+class IoTClient(threading.Thread):
     """
-    Class representing an IoT client that sends data to edge nodes.
-
-    Attributes:
-        device_id (str): The unique identifier of the IoT device.
-        edge_address (str): Address of the edge node.
-        sio (socketio.Client): Socket.IO client instance.
-        logger (Logger): Logger instance for logging.
-
-    Methods:
-        __init__: Initializes the IoTClient object.
-        send: Sends data to edge nodes.
-        run: Runs the IoT client.
-        stop_client: Stops the IoT client gracefully.
-        disconnect_from_edge: Disconnects from the edge node.
+    IoT client class to send data to edge nodes.
     """
 
     def __init__(self, device_id: str, edge_address: str, data: Any):
@@ -43,9 +30,9 @@ class IoTClient(Thread):
             0  # Transmission time from IoT device to edge node (accumulated)
         )
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
-        self.running = Event()  # Event to control the client's running state
+        self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially
-        self.lock = Lock()  # Lock to ensure thread safety
+        self.lock = threading.Lock()  # Lock to ensure thread safety
 
     def send(self):
         """

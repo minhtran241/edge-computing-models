@@ -7,17 +7,30 @@ import queue
 from typing import Any
 from ultralytics import YOLO
 from Logger import Logger
-from utils.constants import CLOUD_ADDRESS
-from utils.helper_functions import get_device_id, ocr_license_plate
+from constants import CLOUD_ADDRESS
+from helpers.common import get_device_id
+from helpers.ocr import ocr_license_plate
 
 
 class EdgeNode:
+    """
+    Edge node class to process data from IoT devices and send it to the cloud.
+    """
+
     def __init__(
         self,
         device_id: str,
         port: int = 10000,
         cloud_addr: str = CLOUD_ADDRESS,
     ):
+        """
+        Initialize the EdgeNode instance.
+
+        Args:
+                        device_id (str): The unique identifier of the edge node.
+                        port (int, optional): The port on which the edge node will run. Defaults to 10000.
+                        cloud_addr (str, optional): The address of the cloud server. Defaults to CLOUD_ADDRESS.
+        """
         self.device_id = device_id
         self.cloud_addr = cloud_addr
         self.port = port
@@ -32,6 +45,9 @@ class EdgeNode:
         self.running = threading.Event()
 
     def process_iot_data(self):
+        """
+        Process the data received from IoT devices.
+        """
         while self.running.is_set():
             try:
                 device_id, data = self.queue.get(timeout=1)
@@ -40,6 +56,13 @@ class EdgeNode:
                 pass
 
     def _process_iot_data(self, device_id: str, data: Any):
+        """
+        Process the data received from an IoT device.
+
+        Args:
+                        device_id (str): The identifier of the IoT device.
+                        data (Any): The data received from the IoT device.
+        """
         start_time = time.time()
         data = ocr_license_plate(data)
         self.proctime += time.time() - start_time
@@ -58,6 +81,9 @@ class EdgeNode:
         )
 
     def run(self):
+        """
+        Run the edge node.
+        """
         try:
             self.running.set()
             pidt = threading.Thread(target=self.process_iot_data, daemon=True)
@@ -72,6 +98,9 @@ class EdgeNode:
             self.logger.error(f"An error occurred: {e}")
 
     def stop(self):
+        """
+        Stop the edge node gracefully.
+        """
         self.running.clear()
         self.sio_client.disconnect()
         self.sio_server.stop()
@@ -97,16 +126,16 @@ if __name__ == "__main__":
     def recv(sid, data):
         session = edge_node.sio_server.get_session(sid)
         device_id = session["device_id"]
-        if "acc_transtime" in data and data["acc_transtime"] is not None:
-            edge_node.transtime += data["acc_transtime"]
-            edge_node.logger.info(
-                f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
-            )
-        elif "data" in data and data["data"] is not None:
+        if "data" in data and data["data"] is not None:
             edge_node.logger.info(
                 f"Received data from IoT device {device_id}: {data['fsize']} bytes"
             )
             edge_node.queue.put((device_id, data["data"]))
+        elif "acc_transtime" in data and data["acc_transtime"] is not None:
+            edge_node.transtime += data["acc_transtime"]
+            edge_node.logger.info(
+                f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
+            )
 
     try:
         edge_node.run()
