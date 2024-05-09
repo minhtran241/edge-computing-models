@@ -41,9 +41,10 @@ class IoTClient(threading.Thread):
         for img_path in self.data:
             fsize = os.path.getsize(img_path)
             img_data = image_to_bytes(img_path)
+            sent_data = {"fsize": fsize, "img_path": img_path, "data": img_data}
             with self.lock:
                 start_time = time.time()
-                self.sio.emit("recv", data={"fsize": fsize, "data": img_data})
+                self.sio.emit("recv", data=sent_data)
                 self.transtime += time.time() - start_time
 
         with self.lock:

@@ -63,13 +63,18 @@ class EdgeNode:
                         device_id (str): The identifier of the IoT device.
                         data (Any): The data received from the IoT device.
         """
+        # Sample: data = {"fsize": fsize, "img_path": img_path, "data": img_data}
+        fsize = data["fsize"]
+        img_path = data["img_path"]
+        img_data = data["data"]
         start_time = time.time()
-        data = ocr_license_plate(data)
+        result = ocr_license_plate(img_data)
         self.proctime += time.time() - start_time
+        sent_data = {"fsize": fsize, "img_path": img_path, "data": result}
         start_time = time.time()
         self.sio_client.emit(
             "recv",
-            data={"data": data},
+            data=sent_data,
         )
         self.transtime += time.time() - start_time
         self.sio_client.emit(
@@ -127,10 +132,10 @@ if __name__ == "__main__":
         session = edge_node.sio_server.get_session(sid)
         device_id = session["device_id"]
         if "data" in data and data["data"] is not None:
-            edge_node.logger.info(
-                f"Received data from IoT device {device_id}: {data['fsize']} bytes"
-            )
-            edge_node.queue.put((device_id, data["data"]))
+            # Print the data received from the IoT device
+            edge_node.logger.info(f"Received data from IoT device {device_id}")
+            # Sample: data["data"] = {"fsize": fsize, "img_path": img_path, "data": img_data}
+            edge_node.queue.put((device_id, data))
         elif "acc_transtime" in data and data["acc_transtime"] is not None:
             edge_node.transtime += data["acc_transtime"]
             edge_node.logger.info(

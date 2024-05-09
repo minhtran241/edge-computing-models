@@ -46,9 +46,12 @@ class CloudServer:
         df = pd.DataFrame(
             {
                 "Device ID": [device_id],
-                "Amount Data Received": [len(self.data.get(device_id, []))],
-                "Total Transmission Time": [self.transtimes.get(device_id, 0)],
-                "Total Processing Time": [self.proctimes.get(device_id, 0)],
+                "Files Received": [len(self.data.get(device_id, []))],
+                "Total File Size": [
+                    sum([d["fsize"] for d in self.data.get(device_id, [])])
+                ],
+                "Transmission Time": [self.transtimes.get(device_id, 0)],
+                "Processing Time": [self.proctimes.get(device_id, 0)],
             }
         )
         print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
@@ -61,11 +64,15 @@ class CloudServer:
         df = pd.DataFrame(
             {
                 "Device ID": list(self.transtimes.keys()),
-                "Amount Data Received": [
+                "Files Received": [
                     len(self.data.get(device_id, [])) for device_id in self.data.keys()
                 ],
-                "Total Transmission Time": list(self.transtimes.values()),
-                "Total Processing Time": list(self.proctimes.values()),
+                "Total File Size": [
+                    sum([d["fsize"] for d in self.data.get(device_id, [])])
+                    for device_id in self.data.keys()
+                ],
+                "Transmission Time": list(self.transtimes.values()),
+                "Processing Time": list(self.proctimes.values()),
             }
         )
         print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
@@ -105,7 +112,7 @@ class CloudServer:
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
             if "data" in data and data["data"] is not None:
-                self.process_edge_data(device_id, data["data"])
+                self.process_edge_data(device_id, data)
             elif "transtime" in data and "proctime" in data:
                 self.transtimes[device_id] = data["transtime"]
                 self.proctimes[device_id] = data["proctime"]
