@@ -3,9 +3,12 @@ import socketio
 import time
 import threading
 from typing import List, Any
-from constants import EDGE_NODE_ADDRESSES, IMAGE_DIR
+from constants import NUM_EDGE_NODES, IMAGE_DIR
 from helpers.common import partition_images, image_to_bytes
 from Logger import Logger
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class IoTClient(threading.Thread):
@@ -83,6 +86,9 @@ class IoTClient(threading.Thread):
 
 if __name__ == "__main__":
     try:
+        EDGE_NODE_ADDRESSES = [
+            os.getenv(f"EDGE_NODE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
+        ]
         data = partition_images(dir=IMAGE_DIR, num_parts=len(EDGE_NODE_ADDRESSES))
         iot_clients: List[IoTClient] = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):

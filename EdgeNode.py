@@ -1,15 +1,18 @@
 import sys
+import os
 import threading
 import eventlet
 import socketio
 import time
 import queue
 from typing import Any
+from dotenv import load_dotenv
 from ultralytics import YOLO
 from Logger import Logger
-from constants import CLOUD_ADDRESS
 from helpers.common import get_device_id
 from helpers.ocr import ocr_license_plate
+
+load_dotenv()
 
 
 class EdgeNode:
@@ -21,7 +24,7 @@ class EdgeNode:
         self,
         device_id: str,
         port: int = 10000,
-        cloud_addr: str = CLOUD_ADDRESS,
+        cloud_addr: str = os.getenv("CLOUD_ADDRESS") or "http://localhost:20000",
     ):
         """
         Initialize the EdgeNode instance.
