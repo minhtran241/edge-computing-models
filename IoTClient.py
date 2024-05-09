@@ -87,8 +87,9 @@ class IoTClient(threading.Thread):
 if __name__ == "__main__":
     try:
         EDGE_NODE_ADDRESSES = [
-            os.getenv(f"EDGE_NODE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
+            os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
+        print(EDGE_NODE_ADDRESSES)
         data = partition_images(dir=IMAGE_DIR, num_parts=len(EDGE_NODE_ADDRESSES))
         iot_clients: List[IoTClient] = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
