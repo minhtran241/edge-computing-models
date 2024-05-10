@@ -119,15 +119,3 @@ class CloudServer:
                 self.proctimes[device_id] = data["proctime"]
 
         server_thread.wait()
-
-
-if __name__ == "__main__":
-    try:
-        cloud = CloudServer()
-        cloud.run()
-    except (KeyboardInterrupt, SystemExit, Exception) as e:
-        if isinstance(e, Exception):
-            cloud.logger.error(f"An error occurred: {e}")
-        cloud.print_stats()
-        cloud.logger.info("Cloud server stopped.")
-        cloud.sio.shutdown()

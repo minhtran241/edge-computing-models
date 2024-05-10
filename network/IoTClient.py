@@ -1,4 +1,3 @@
-import sys
 import os
 import socketio
 import time
@@ -103,49 +102,3 @@ class IoTClient(threading.Thread):
 
     def __del__(self):
         self.stop_client()
-
-
-if __name__ == "__main__":
-    try:
-        # Check for command-line argument
-        if len(sys.argv) < 2:
-            raise ValueError("Usage: python IoTClient.py <algorithm> <iterations>")
-
-        algo_code = sys.argv[1]
-        if algo_code not in DATA_CONFIG:
-            raise ValueError(f"Invalid algorithm code: {algo_code}")
-
-        algo = DATA_CONFIG.get(algo_code)
-        iterations = int(sys.argv[2]) if len(sys.argv) > 2 else ITERATIONS
-
-        print(f"Running {algo['name']} IoT client with {iterations} iterations...")
-
-        # Get edge node addresses
-        NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
-        EDGE_NODE_ADDRESSES = [
-            os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
-        ]
-
-        iot_clients = []
-        for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
-            iot_client = IoTClient(
-                device_id=f"iot-{i+1}",
-                edge_address=edge_address,
-                data=algo["data_file"],
-                algo=algo_code,
-                iterations=iterations,
-            )
-            iot_clients.append(iot_client)
-            iot_client.start()
-
-        for iot_client in iot_clients:
-            iot_client.join()
-
-    except (ValueError, KeyboardInterrupt, SystemExit) as e:
-        print(f"An error occurred: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    finally:
-        for iot_client in iot_clients:
-            iot_client.stop_client()
-        print("IoT clients stopped.")
