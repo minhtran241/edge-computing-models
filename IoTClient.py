@@ -51,10 +51,10 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        for _ in range(self.iterations):
-            fsize = os.path.getsize(self.data)
+        fsize = os.path.getsize(self.data)
+        formatted = DATA_CONFIG[self.algo]["preprocess"](self.data)
 
-            formatted = DATA_CONFIG[self.algo]["preprocess"](self.data)
+        for _ in range(self.iterations):
 
             sent_data = {
                 "fsize": fsize,
