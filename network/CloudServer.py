@@ -2,7 +2,8 @@ import eventlet
 import socketio
 import pandas as pd
 from typing import Any
-from Logger import Logger
+from helpers.common import get_device_id
+from helpers.logger import Logger
 from helpers.common import get_device_id
 from tabulate import tabulate
 
