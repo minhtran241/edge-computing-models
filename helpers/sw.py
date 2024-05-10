@@ -1,4 +1,24 @@
-def sw_algo(seq1, seq2, match_score=2, mismatch_score=-1, gap_penalty=-1):
+from typing import Tuple, List
+
+
+def _sw_algo(
+    seq1, seq2, match_score=2, mismatch_score=-1, gap_penalty=-1
+) -> Tuple[int, str, str]:
+    """
+    Perform pairwise sequence alignment using the Smith-Waterman algorithm.
+
+    Args:
+        seq1 (str): The first sequence to align.
+        seq2 (str): The second sequence to align.
+        match_score (int): The score to add for a match.
+        mismatch_score (int): The score to add for a mismatch.
+        gap_penalty (int): The score to subtract for a gap.
+
+    Returns:
+        int: The maximum alignment score.
+        str: The first aligned sequence.
+        str: The second aligned sequence.
+    """
     # Initialize the score matrix
     score_matrix = [[0] * (len(seq2) + 1) for _ in range(len(seq1) + 1)]
 
@@ -46,7 +66,17 @@ def sw_algo(seq1, seq2, match_score=2, mismatch_score=-1, gap_penalty=-1):
     return max_score, aligned_seq1, aligned_seq2
 
 
-def get_records(filename: str):
+def get_records(filename: str) -> List[str]:
+    """
+    Get the records from a FASTA file. Each record is a sequence of nucleotides.
+    The first record is the database sequence. The subsequent records are query sequences.
+
+    Args:
+        filename (str): The name of the FASTA file.
+
+    Returns:
+        List[str]: A list of sequences.
+    """
     result = []
     current_seq = []
 
@@ -68,13 +98,29 @@ def get_records(filename: str):
 
 
 def records_to_txt(filename: str) -> str:
+    """
+    Convert the records from a FASTA file to a text format.
+
+    Args:
+        filename (str): The name of the FASTA file.
+
+    Returns:
+        str: The records in text format.
+    """
     return "\n".join(get_records(filename))
 
 
-def smith_waterman(text: str):
+def smith_waterman(text: str) -> Tuple[int, str, str]:
+    """
+    Perform pairwise sequence alignment using the Smith-Waterman algorithm.
+
+    Args:
+        text (str): The text containing the sequences to align.
+
+    Returns:
+        Tuple[int, str, str]: The maximum alignment score, the first aligned sequence, and the second aligned sequence.
+    """
     # seq1 and seq2 are separated by a newline character
     records = text.split("\n")
-
     # records[0] is db sequence, records[1] is query sequence
-    max_score, aligned_seq1, aligned_seq2 = sw_algo(records[0], records[1])
-    return max_score, aligned_seq1, aligned_seq2
+    return _sw_algo(records[0], records[1])

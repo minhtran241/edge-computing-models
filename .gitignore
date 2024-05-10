@@ -1,6 +1,8 @@
 # Received image folder
 recv_images/
 
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
