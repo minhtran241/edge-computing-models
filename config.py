@@ -1,5 +1,5 @@
 from typing import Dict
-from helpers.common import image_to_bytes, read_txt
+from helpers.common import image_to_bytes
 from helpers.ocr import ocr_license_plate
 from helpers.yolo import yolo_inference
 from helpers.sw import records_to_txt, smith_waterman

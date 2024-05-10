@@ -38,9 +38,7 @@ class IoTClient(threading.Thread):
         self.algo = algo
         self.iterations = iterations
         self.sio = socketio.Client()  # Socket.IO client
-        self.transtime = (
-            0  # Transmission time from IoT device to edge node (accumulated)
-        )
+        self.transtime = 0  # Transmission time to edge node (accumulated)
         self.logger = Logger(name=f"IoTClient-{device_id}").get_logger()
         self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially

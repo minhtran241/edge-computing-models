@@ -4,7 +4,6 @@ import pandas as pd
 from typing import Any
 from helpers.common import get_device_id
 from helpers.logger import Logger
-from helpers.common import get_device_id
 from tabulate import tabulate
 
 
@@ -39,24 +38,6 @@ class CloudServer:
         self.logger.info(f"Received data from edge node {device_id}: {data}")
         self.data.setdefault(device_id, [])
         self.data[device_id].append(data)
-
-    def _print_stats(self, device_id: str):
-        """
-        Print the statistics for each edge node upon disconnection.
-        """
-        df = pd.DataFrame(
-            {
-                "Device ID": [device_id],
-                "Files Received": [len(self.data.get(device_id, []))],
-                "Total File Size": [
-                    sum([d["fsize"] for d in self.data.get(device_id, [])])
-                ],
-                "Transmission Time": [self.transtimes.get(device_id, 0)],
-                "Processing Time": [self.proctimes.get(device_id, 0)],
-            }
-        )
-        print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
-        self.logger.info(f"Edge node {device_id} disconnected")
 
     def print_stats(self):
         """
@@ -106,7 +87,7 @@ class CloudServer:
         def disconnect(sid):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            self._print_stats(device_id)
+            self.logger.info(f"Edge node {device_id} disconnected")
 
         @self.sio.event
         def recv(sid, data):

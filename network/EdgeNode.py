@@ -21,7 +21,7 @@ class EdgeNode:
         self,
         device_id: str,
         port: int = 10000,
-        cloud_addr: str = os.getenv("CLOUD_ADDRESS") or "http://localhost:20000",
+        cloud_addr: str = os.getenv("CLOUD_ADDRESS"),
     ):
         """
         Initialize the EdgeNode instance.
