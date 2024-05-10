@@ -7,12 +7,17 @@ import time
 import queue
 from typing import Any
 from dotenv import load_dotenv
-from ultralytics import YOLO
 from Logger import Logger
 from helpers.common import get_device_id
 from helpers.ocr import ocr_license_plate
+from helpers.yolo import yolo_inference
 
 load_dotenv()
+
+DPROCESSING_FUNCS = {
+    "ocr": ocr_license_plate,
+    "yolo": yolo_inference,
+}
 
 
 class EdgeNode:
@@ -30,9 +35,9 @@ class EdgeNode:
         Initialize the EdgeNode instance.
 
         Args:
-                        device_id (str): The unique identifier of the edge node.
-                        port (int, optional): The port on which the edge node will run. Defaults to 10000.
-                        cloud_addr (str, optional): The address of the cloud server. Defaults to CLOUD_ADDRESS.
+            device_id (str): The unique identifier of the edge node.
+            port (int, optional): The port on which the edge node will run. Defaults to 10000.
+            cloud_addr (str, optional): The address of the cloud server. Defaults to CLOUD_ADDRESS.
         """
         self.device_id = device_id
         self.cloud_addr = cloud_addr
@@ -41,7 +46,6 @@ class EdgeNode:
         self.sio_server = socketio.Server()
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
-        self.model = YOLO("yolov8m.pt")
         self.queue = queue.Queue()
         self.transtime = 0
         self.proctime = 0
@@ -63,23 +67,33 @@ class EdgeNode:
         Process the data received from an IoT device.
 
         Args:
-                        device_id (str): The identifier of the IoT device.
-                        data (Any): The data received from the IoT device.
+            device_id (str): The identifier of the IoT device.
+            data (Any): The data received from the IoT device.
         """
-        # Sample: data = {"fsize": fsize, "img_path": img_path, "data": img_data}
-        fsize = data["fsize"]
-        img_path = data["img_path"]
-        img_data = data["data"]
+        # Sample: data = {"fsize": fsize, "fpath": fpath, "data": formatted, "algo": algo}
+        recv_data = data["data"]
+        algo = data["algo"]
+
         start_time = time.time()
-        result = ocr_license_plate(img_data)
+        result = DPROCESSING_FUNCS[algo](recv_data)
         self.proctime += time.time() - start_time
-        sent_data = {"fsize": fsize, "img_path": img_path, "data": result}
+
+        # Remain attributes the same, just change the data to the result and the device_id of the IoT device
+        sent_data = {
+            "fsize": data["fsize"],
+            "fpath": data["fpath"],
+            "algo": algo,
+            "data": result,
+            "iot_device_id": device_id,
+        }
+
         start_time = time.time()
         self.sio_client.emit(
             "recv",
             data=sent_data,
         )
         self.transtime += time.time() - start_time
+
         self.sio_client.emit(
             "recv",
             data={
@@ -137,7 +151,7 @@ if __name__ == "__main__":
         if "data" in data and data["data"] is not None:
             # Print the data received from the IoT device
             edge_node.logger.info(f"Received data from IoT device {device_id}")
-            # Sample: data["data"] = {"fsize": fsize, "img_path": img_path, "data": img_data}
+            # Sample: data = {"fsize": fsize, "fpath": fpath, "data": formatted, "algo": algo}
             edge_node.queue.put((device_id, data))
         elif "acc_transtime" in data and data["acc_transtime"] is not None:
             edge_node.transtime += data["acc_transtime"]

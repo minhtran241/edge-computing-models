@@ -1,10 +1,11 @@
+import sys
 import os
 import socketio
 import time
 import threading
-from typing import List, Any
-from constants import NUM_EDGE_NODES, IMAGE_DIR
-from helpers.common import partition_images, image_to_bytes
+from typing import Any, Dict
+from constants import ALGORITHMS
+from helpers.common import image_to_bytes, partition_images, partition_texts
 from Logger import Logger
 from dotenv import load_dotenv
 
@@ -16,7 +17,7 @@ class IoTClient(threading.Thread):
     IoT client class to send data to edge nodes.
     """
 
-    def __init__(self, device_id: str, edge_address: str, data: Any):
+    def __init__(self, device_id: str, edge_address: str, data: Any, algo: str):
         """
         Initializes the IoTClient object.
 
@@ -28,6 +29,7 @@ class IoTClient(threading.Thread):
         self.device_id = device_id
         self.edge_address = edge_address
         self.data = data
+        self.algo = algo
         self.sio = socketio.Client()  # Socket.IO client
         self.transtime = (
             0  # Transmission time from IoT device to edge node (accumulated)
@@ -41,10 +43,22 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        for img_path in self.data:
-            fsize = os.path.getsize(img_path)
-            img_data = image_to_bytes(img_path)
-            sent_data = {"fsize": fsize, "img_path": img_path, "data": img_data}
+        for fpath in self.data:
+            fsize = os.path.getsize(fpath)
+
+            # Preprocess data to its proper format for transmission
+            if ALGORITHMS[self.algo]["data_type"] == "image":
+                formatted = image_to_bytes(fpath)
+            elif ALGORITHMS[self.algo]["data_type"] == "text":
+                formatted = open(fpath, "r").read()
+
+            sent_data = {
+                "fsize": fsize,
+                "fpath": fpath,
+                "algo": self.algo,
+                "data": formatted,
+            }
+
             with self.lock:
                 start_time = time.time()
                 self.sio.emit("recv", data=sent_data)
@@ -84,28 +98,49 @@ class IoTClient(threading.Thread):
         self.stop_client()
 
 
+DPARTITION_FUNCS: Dict[str, Any] = {"image": partition_images, "text": partition_texts}
+
 if __name__ == "__main__":
     try:
+        # Check for command-line argument
+        if len(sys.argv) < 2:
+            raise ValueError("Usage: python IoTClient.py <algorithm>")
+
+        algo_code = sys.argv[1]
+        algo = ALGORITHMS.get(algo_code)
+        if not algo:
+            raise ValueError(f"Invalid algorithm: {algo_code}")
+
+        print(f"Running {algo['name']} IoT client...")
+
+        # Get edge node addresses
+        NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
         EDGE_NODE_ADDRESSES = [
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
-        print(EDGE_NODE_ADDRESSES)
-        data = partition_images(dir=IMAGE_DIR, num_parts=len(EDGE_NODE_ADDRESSES))
-        iot_clients: List[IoTClient] = []
+
+        # Partition data based on algorithm type
+        data = DPARTITION_FUNCS[algo["data_type"]](algo["data_dir"], NUM_EDGE_NODES)
+
+        iot_clients = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"iot-{i+1}",
                 edge_address=edge_address,
                 data=data[i],
+                algo=algo_code,
             )
             iot_clients.append(iot_client)
             iot_client.start()
 
         for iot_client in iot_clients:
             iot_client.join()
-    except (KeyboardInterrupt, SystemExit, Exception) as e:
-        if isinstance(e, Exception):
-            print(f"An error occurred: {e}")
+
+    except (ValueError, KeyboardInterrupt, SystemExit) as e:
+        print(f"An error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
         for iot_client in iot_clients:
             iot_client.stop_client()
         print("IoT clients stopped.")

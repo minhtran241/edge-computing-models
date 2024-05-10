@@ -1,16 +1,19 @@
 import os
 import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from ultralytics import YOLO
-from common import bytes_to_image
+from helpers.common import bytes_to_image
+from constants import YOLO_MODEL
 
 
-def predict_images(img_batch: List[str], model: YOLO) -> List[Dict[str, Any]]:
+def predict_images(
+    img_batch: Union[List[str], str], model: YOLO = YOLO_MODEL
+) -> List[Dict[str, Any]]:
     """
     Predict the objects in the images using the YOLO model.
 
     Args:
-        img_batch (List[str]): A list of image paths.
+        img_batch (Union[List[str], str]): The image batch to predict.
         model (YOLO): The YOLO model.
 
     Returns:
@@ -29,9 +32,7 @@ def predict_images(img_batch: List[str], model: YOLO) -> List[Dict[str, Any]]:
     ]
 
 
-def yolo_inference(
-    data: bytes, model: YOLO, device_id: str = "unknown"
-) -> Dict[str, Any]:
+def yolo_inference(data: bytes) -> Dict[str, Any]:
     """
     Perform object detection on an image using the YOLO model.
 
@@ -43,9 +44,9 @@ def yolo_inference(
     Returns:
         Dict[str, Any]: A dictionary containing the results of the prediction.
     """
-    fpath = f"recv_images/{device_id}/{int(time.time())}.jpg"
+    fpath = f"recv_images/{int(time.time())}.jpg"
     # Create the directory if it does not exist
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
     bytes_to_image(data, fpath)
-    data = predict_images([fpath], model)[0]
+    data = predict_images(fpath)[0]
     return data

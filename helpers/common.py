@@ -61,3 +61,21 @@ def bytes_to_image(data: bytes, save_path: str):
     """
     with open(save_path, "wb") as f:
         f.write(data)
+
+
+def partition_texts(dir: str, num_parts: int) -> List[List[str]]:
+    """
+    Partitions the text data in the specified directory into multiple parts based on the number of edge nodes.
+
+    Args:
+        dir (str): The directory containing the text data.
+        num_parts (int): The number of parts to partition the data into.
+
+    Returns:
+        List[List[str]]: A list of partitions, where each partition contains a list of text data files.
+    """
+    text_files = [f for f in os.listdir(dir) if f.endswith(".txt")]
+    partitions = [[] for _ in range(num_parts)]
+    for i, text_file in enumerate(text_files):
+        partitions[i % num_parts].append(os.path.join(dir, text_file))
+    return partitions
