@@ -3,9 +3,9 @@ import os
 import socketio
 import time
 import threading
-from typing import Any, Dict
-from constants import ALGORITHMS
-from helpers.common import image_to_bytes, partition_images, partition_texts
+from typing import Any
+from constants import ITERATIONS
+from config import DATA_CONFIG
 from Logger import Logger
 from dotenv import load_dotenv
 
@@ -43,18 +43,14 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        for fpath in self.data:
-            fsize = os.path.getsize(fpath)
+        for _ in range(ITERATIONS):
+            fsize = os.path.getsize(self.data)
 
-            # Preprocess data to its proper format for transmission
-            if ALGORITHMS[self.algo]["data_type"] == "image":
-                formatted = image_to_bytes(fpath)
-            elif ALGORITHMS[self.algo]["data_type"] == "text":
-                formatted = open(fpath, "r").read()
+            formatted = DATA_CONFIG[self.algo]["preprocess"](self.data)
 
             sent_data = {
                 "fsize": fsize,
-                "fpath": fpath,
+                "fpath": self.data,
                 "algo": self.algo,
                 "data": formatted,
             }
@@ -98,8 +94,6 @@ class IoTClient(threading.Thread):
         self.stop_client()
 
 
-DPARTITION_FUNCS: Dict[str, Any] = {"image": partition_images, "text": partition_texts}
-
 if __name__ == "__main__":
     try:
         # Check for command-line argument
@@ -107,7 +101,7 @@ if __name__ == "__main__":
             raise ValueError("Usage: python IoTClient.py <algorithm>")
 
         algo_code = sys.argv[1]
-        algo = ALGORITHMS.get(algo_code)
+        algo = DATA_CONFIG.get(algo_code)
         if not algo:
             raise ValueError(f"Invalid algorithm: {algo_code}")
 
@@ -119,15 +113,16 @@ if __name__ == "__main__":
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
 
-        # Partition data based on algorithm type
-        data = DPARTITION_FUNCS[algo["data_type"]](algo["data_dir"], NUM_EDGE_NODES)
+        # Get data file path and send the same data to all edge nodes
+        data_file = algo["data_file"]
+        print(f"Sending data from {data_file} to edge nodes...")
 
         iot_clients = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"iot-{i+1}",
                 edge_address=edge_address,
-                data=data[i],
+                data=data_file,
                 algo=algo_code,
             )
             iot_clients.append(iot_client)

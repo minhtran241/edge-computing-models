@@ -74,8 +74,24 @@ def partition_texts(dir: str, num_parts: int) -> List[List[str]]:
     Returns:
         List[List[str]]: A list of partitions, where each partition contains a list of text data files.
     """
-    text_files = [f for f in os.listdir(dir) if f.endswith(".txt")]
+    text_files = [f for f in os.listdir(dir) if f.endswith(".txt")] * 300
     partitions = [[] for _ in range(num_parts)]
     for i, text_file in enumerate(text_files):
         partitions[i % num_parts].append(os.path.join(dir, text_file))
     return partitions
+
+
+def partition_text(filename: str, num_parts: int) -> List[List[str]]:
+    # Read a text file of reviews and split it into multiple parts for each edge node. Each reviews is a separate line in the file. 2 reviews are separated by one line
+    with open(filename, "r") as f:
+        reviews = f.readlines()
+    data_parts = [[] for _ in range(num_parts)]
+    for i, review in enumerate(reviews):
+        data_parts[i % num_parts].append(review)
+    return data_parts
+
+
+def read_txt(filename: str) -> str:
+    with open(filename, "r") as f:
+        txt = f.read()
+    return txt

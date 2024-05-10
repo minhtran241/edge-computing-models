@@ -8,16 +8,10 @@ import queue
 from typing import Any
 from dotenv import load_dotenv
 from Logger import Logger
+from config import DATA_CONFIG
 from helpers.common import get_device_id
-from helpers.ocr import ocr_license_plate
-from helpers.yolo import yolo_inference
 
 load_dotenv()
-
-DPROCESSING_FUNCS = {
-    "ocr": ocr_license_plate,
-    "yolo": yolo_inference,
-}
 
 
 class EdgeNode:
@@ -75,7 +69,7 @@ class EdgeNode:
         algo = data["algo"]
 
         start_time = time.time()
-        result = DPROCESSING_FUNCS[algo](recv_data)
+        result = DATA_CONFIG[algo]["process"](recv_data)
         self.proctime += time.time() - start_time
 
         # Remain attributes the same, just change the data to the result and the device_id of the IoT device
