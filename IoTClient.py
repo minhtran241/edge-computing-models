@@ -17,7 +17,14 @@ class IoTClient(threading.Thread):
     IoT client class to send data to edge nodes.
     """
 
-    def __init__(self, device_id: str, edge_address: str, data: Any, algo: str):
+    def __init__(
+        self,
+        device_id: str,
+        edge_address: str,
+        data: Any,
+        algo: str,
+        iterations: int = ITERATIONS,
+    ):
         """
         Initializes the IoTClient object.
 
@@ -30,6 +37,7 @@ class IoTClient(threading.Thread):
         self.edge_address = edge_address
         self.data = data
         self.algo = algo
+        self.iterations = iterations
         self.sio = socketio.Client()  # Socket.IO client
         self.transtime = (
             0  # Transmission time from IoT device to edge node (accumulated)
@@ -43,7 +51,7 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        for _ in range(ITERATIONS):
+        for _ in range(self.iterations):
             fsize = os.path.getsize(self.data)
 
             formatted = DATA_CONFIG[self.algo]["preprocess"](self.data)
@@ -61,7 +69,10 @@ class IoTClient(threading.Thread):
                 self.transtime += time.time() - start_time
 
         with self.lock:
-            self.sio.emit("recv", data={"acc_transtime": self.transtime})
+            self.sio.emit(
+                "recv",
+                data={"acc_transtime": self.transtime},
+            )
 
     def run(self):
         """
@@ -98,14 +109,16 @@ if __name__ == "__main__":
     try:
         # Check for command-line argument
         if len(sys.argv) < 2:
-            raise ValueError("Usage: python IoTClient.py <algorithm>")
+            raise ValueError("Usage: python IoTClient.py <algorithm> <iterations>")
 
         algo_code = sys.argv[1]
-        algo = DATA_CONFIG.get(algo_code)
-        if not algo:
-            raise ValueError(f"Invalid algorithm: {algo_code}")
+        if algo_code not in DATA_CONFIG:
+            raise ValueError(f"Invalid algorithm code: {algo_code}")
 
-        print(f"Running {algo['name']} IoT client...")
+        algo = DATA_CONFIG.get(algo_code)
+        iterations = int(sys.argv[2]) if len(sys.argv) > 2 else ITERATIONS
+
+        print(f"Running {algo['name']} IoT client with {iterations} iterations...")
 
         # Get edge node addresses
         NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
@@ -113,17 +126,14 @@ if __name__ == "__main__":
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
 
-        # Get data file path and send the same data to all edge nodes
-        data_file = algo["data_file"]
-        print(f"Sending data from {data_file} to edge nodes...")
-
         iot_clients = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"iot-{i+1}",
                 edge_address=edge_address,
-                data=data_file,
+                data=algo["data_file"],
                 algo=algo_code,
+                iterations=iterations,
             )
             iot_clients.append(iot_client)
             iot_client.start()

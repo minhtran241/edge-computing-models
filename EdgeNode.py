@@ -53,6 +53,7 @@ class EdgeNode:
             try:
                 device_id, data = self.queue.get(timeout=1)
                 self._process_iot_data(device_id, data)
+                self.queue.task_done()
             except queue.Empty:
                 pass
 
