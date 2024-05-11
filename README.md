@@ -64,11 +64,12 @@ python trigger.py
 This will require your input to specify the following parameters:
 
 - The role of the device (IoT device, edge server or cloud)
+  - Valid roles: `iot`, `edge`, `cloud`
 - The device ID
 - The algorithm code [See the list of available algorithms](#available-algorithms)
 - Number of iterations
 
-#### Available roles and arguments
+#### Input format
 
 ```
 ================
