@@ -68,7 +68,7 @@ This will require your input to specify the following parameters:
 - The algorithm code [See the list of available algorithms](#available-algorithms)
 - Number of iterations
 
-### Available roles and arguments
+#### Available roles and arguments
 
 ```
 ================
