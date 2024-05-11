@@ -25,7 +25,7 @@ def start_iot(device_id: str, algo_code: str, iterations: int):
         iot_clients = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
-                device_id=device_id,
+                device_id=f"{device_id}_t{i+1}",
                 edge_address=edge_address,
                 data=algo["data_file"],
                 algo=algo_code,
