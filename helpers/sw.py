@@ -97,17 +97,22 @@ def get_records(filename: str) -> List[str]:
     return result
 
 
-def records_to_txt(filename: str) -> str:
+def records_to_txt(dir: str, dbfilename: str = 'database.txt', queryfilename: str = 'query.txt') -> str:
     """
     Convert the records from a FASTA file to a text format.
 
     Args:
-        filename (str): The name of the FASTA file.
+        dir (str): The directory containing the FASTA files (database and query sequences)
 
     Returns:
         str: The records in text format.
     """
-    return "\n".join(get_records(filename))
+    dbfile = f'{dir}/{dbfilename}'
+    db_seq = get_records(dbfile)[0]
+    queryfile = f'{dir}/{queryfilename}'
+    query_seq = get_records(queryfile)[0]
+    result = db_seq + "\n" + query_seq
+    return result
 
 
 def smith_waterman(text: str) -> Tuple[int, str, str]:

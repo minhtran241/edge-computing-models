@@ -1,3 +1,4 @@
+import os
 from typing import Any, Union
 from constants import VALID_ROLES
 
@@ -70,3 +71,27 @@ def read_txt(filename: str) -> str:
     with open(filename, "r") as f:
         txt = f.read()
     return txt
+
+def fimg_from_dir(dir: str, out_format: str = "bytes") -> Any:
+	"""
+	Get the first image from the specified directory.
+
+	Args:
+		dir (str): The directory containing the images.
+		out_format (str): The output format ("bytes" or "path").
+
+	Returns:
+		Any: The image data in bytes or the path to the image file.
+	"""
+	img_files = [f for f in os.listdir(dir) if f.endswith((".jpg", ".jpeg", ".png"))]
+	if not img_files:
+		raise ValueError(f"No image files found in the directory: {dir}")
+	img_file = img_files[0]
+	img_path = os.path.join(dir, img_file)
+	if out_format == "bytes":
+		return image_to_bytes(img_path)
+	elif out_format == "path":
+		return img_path
+	else:
+		raise ValueError(f"Invalid output format: {out_format}. Valid formats are: 'bytes', 'path'")
+	

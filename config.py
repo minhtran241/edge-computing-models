@@ -1,5 +1,5 @@
 from typing import Dict
-from helpers.common import image_to_bytes
+from helpers.common import fimg_from_dir
 from helpers.ocr import ocr_license_plate
 from helpers.yolo import yolo_inference
 from helpers.sw import records_to_txt, smith_waterman
@@ -7,23 +7,23 @@ from helpers.sw import records_to_txt, smith_waterman
 DATA_CONFIG: Dict[str, Dict[str, str]] = {
     "sw": {
         "name": "Smith-Waterman",
-        "data_file": "data/hsa.txt",
+        "data_dir": "data/hsa/small",
         "data_type": "text",
         "preprocess": records_to_txt,
         "process": smith_waterman,
     },
     "ocr": {
         "name": "Optical Character Recognition",
-        "data_file": "data/license_plate.jpg",
+        "data_dir": "data/license_plates",
         "data_type": "image",
-        "preprocess": image_to_bytes,
+        "preprocess": fimg_from_dir,
         "process": ocr_license_plate,
-    },
+    }, 
     "yolo": {
         "name": "Object Detection",
-        "data_file": "data/objects.jpg",
+        "data_dir": "data/coco128_images",
         "data_type": "image",
-        "preprocess": image_to_bytes,
+        "preprocess": fimg_from_dir,
         "process": yolo_inference,
     },
 }

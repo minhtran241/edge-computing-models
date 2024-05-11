@@ -5,8 +5,11 @@ import socketio
 import time
 import queue
 from typing import Any
+from dotenv import load_dotenv
 from helpers.logger import Logger
 from config import DATA_CONFIG
+
+load_dotenv()
 
 
 class EdgeNode:
@@ -67,7 +70,7 @@ class EdgeNode:
             device_id (str): The identifier of the IoT device.
             data (Any): The data received from the IoT device.
         """
-        # Sample: data = {"fsize": fsize, "fpath": fpath, "data": formatted, "algo": algo}
+        # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
         recv_data = data["data"]
         algo = data["algo"]
 
@@ -77,8 +80,8 @@ class EdgeNode:
 
         # Remain attributes the same, just change the data to the result and the device_id of the IoT device
         sent_data = {
-            "fsize": data["fsize"],
-            "fpath": data["fpath"],
+            "data_size": data["data_size"],
+            "data_dir": data["data_dir"],
             "algo": algo,
             "data": result,
             "iot_device_id": device_id,
@@ -122,4 +125,5 @@ class EdgeNode:
         """
         self.running.clear()
         self.sio_client.disconnect()
-        self.sio_server.stop()
+        if self.queue.unfinished_tasks > 0:
+            self.queue.join()

@@ -2,10 +2,12 @@ import eventlet
 import socketio
 import pandas as pd
 from typing import Any
+from dotenv import load_dotenv
 from helpers.common import get_device_id
 from helpers.logger import Logger
 from tabulate import tabulate
 
+load_dotenv()
 
 class CloudServer:
     """
@@ -52,7 +54,7 @@ class CloudServer:
                     len(self.data.get(device_id, [])) for device_id in self.data.keys()
                 ],
                 "Total File Size": [
-                    sum([d["fsize"] for d in self.data.get(device_id, [])])
+                    sum([d["data_size"] for d in self.data.get(device_id, [])])
                     for device_id in self.data.keys()
                 ],
                 "Transmission Time": list(self.transtimes.values()),

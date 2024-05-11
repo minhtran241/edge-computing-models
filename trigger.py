@@ -27,7 +27,7 @@ def start_iot(device_id: str, algo_code: str, iterations: int):
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
                 edge_address=edge_address,
-                data=algo["data_file"],
+                data_dir=algo["data_dir"],
                 algo=algo_code,
                 iterations=iterations,
             )
@@ -69,7 +69,7 @@ def start_edge(device_id: str):
         if "data" in data and data["data"] is not None:
             # Print the data received from the IoT device
             edge_node.logger.info(f"Received data from IoT device {device_id}")
-            # Sample: data = {"fsize": fsize, "fpath": fpath, "data": formatted, "algo": algo}
+            # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
             edge_node.queue.put((device_id, data))
         elif "acc_transtime" in data and data["acc_transtime"] is not None:
             edge_node.transtime += data["acc_transtime"]
@@ -122,6 +122,6 @@ if __name__ == "__main__":
             start_edge(device_id)
         elif role == "cloud":
             start_cloud(device_id)
-    except:
-        print("Invalid arguments.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
         sys.exit(1)

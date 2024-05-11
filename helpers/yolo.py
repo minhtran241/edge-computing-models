@@ -44,9 +44,9 @@ def yolo_inference(data: bytes) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A dictionary containing the results of the prediction.
     """
-    fpath = f"recv_images/{int(time.time())}.jpg"
+    data_dir = f"recv_images/{int(time.time())}.jpg"
     # Create the directory if it does not exist
-    os.makedirs(os.path.dirname(fpath), exist_ok=True)
-    bytes_to_image(data, fpath)
-    data = _predict_images(fpath)[0]
+    os.makedirs(os.path.dirname(data_dir), exist_ok=True)
+    bytes_to_image(data, data_dir)
+    data = _predict_images(data_dir)[0]
     return data

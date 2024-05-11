@@ -1,0 +1,2 @@
+>hsa:100287010 no KO assigned | (RefSeq) uncharacterized LOC100287010 (N)
+agcgtctccgcaggccagcgactctggaatcatttaccacagaatctgactgtcaactct

@@ -3,9 +3,12 @@ import socketio
 import time
 import threading
 from typing import Any
+from dotenv import load_dotenv
 from constants import ITERATIONS
 from config import DATA_CONFIG
 from helpers.logger import Logger
+
+load_dotenv()
 
 
 class IoTClient(threading.Thread):
@@ -17,7 +20,7 @@ class IoTClient(threading.Thread):
         self,
         device_id: str,
         edge_address: str,
-        data: Any,
+        data_dir: Any,
         algo: str,
         iterations: int = ITERATIONS,
     ):
@@ -31,7 +34,7 @@ class IoTClient(threading.Thread):
         super().__init__()
         self.device_id = device_id
         self.edge_address = edge_address
-        self.data = data
+        self.data_dir = data_dir
         self.algo = algo
         self.iterations = iterations
         self.sio = socketio.Client()  # Socket.IO client
@@ -44,6 +47,7 @@ class IoTClient(threading.Thread):
             {
                 "device_id": self.device_id,
                 "edge_address": self.edge_address,
+                "data_dir": self.data_dir,
                 "algo": self.algo,
                 "iterations": self.iterations,
             }
@@ -53,14 +57,18 @@ class IoTClient(threading.Thread):
         """
         Sends data to edge nodes.
         """
-        fsize = os.path.getsize(self.data)
-        formatted = DATA_CONFIG[self.algo]["preprocess"](self.data)
+        # Total file size of the data directory
+        data_size = sum(
+			os.path.getsize(os.path.join(self.data_dir, f))
+			for f in os.listdir(self.data_dir)
+		)
+        formatted = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
 
         for _ in range(self.iterations):
 
             sent_data = {
-                "fsize": fsize,
-                "fpath": self.data,
+                "data_size": data_size,
+                "data_dir": self.data_dir,
                 "algo": self.algo,
                 "data": formatted,
             }
