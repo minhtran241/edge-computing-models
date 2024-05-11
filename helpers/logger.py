@@ -12,7 +12,7 @@ class Logger(logging.Logger):
     @staticmethod
     def _get_console_handler():
         formatter = ColoredFormatter(
-            "%(log_color)s%(threadName)s: %(levelname)-8s%(reset)s %(bg_blue)s[%(name)s]%(reset)s %(message)s",
+            "%(log_color)s[%(process)s] %(threadName)s: %(levelname)-8s%(reset)s %(bg_blue)s[%(name)s]%(reset)s %(message)s",
             datefmt=None,
             reset=True,
             log_colors={
