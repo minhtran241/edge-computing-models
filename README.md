@@ -80,13 +80,38 @@ cloud <id>
 ================
 ```
 
-#### Available algorithms
+### Available algorithms
 
 | Algorithm | Code | Description |
 | --- | --- | --- |
 | Smith-Waterman | `sw` | A dynamic programming algorithm for sequence alignment |
 | Tesseract OCR | `ocr` | An optical character recognition algorithm for text recognition |
 | YOLOv8 | `yolo` | An object detection algorithm for image recognition |
+
+### Adding new algorithms
+
+The helper functions for the algorithms should be placed in the [`/helpers`](https://github.com/minhtran241/edge-computing-models/tree/main/helpers) module. For each algorithm, you need at least two functions: `preprocess` and `process`.
+
+- The `preprocess` function is used to prepare the input data for the algorithm in the IoT device. This function should take the `data_dir` as input and return the processed data.
+- The `process` function is used to run the algorithm on the input data and return the result in the edge server. This function should take the `data` as input and return the result. The signature of the function should be as follows:
+
+```python
+from typing import Any
+
+def process_name(data: Any) -> Any:
+ """
+ Run the algorithm on the input data and return the result.
+
+ Args:
+  data (str): The input data to process.
+
+ Returns:
+  str: The result of the algorithm.
+ """
+ pass
+```
+
+- After adding the helper functions, you need to update the `DATA_CONFIG` dictionary in the [`config.py`](https://github.com/minhtran241/edge-computing-models/blob/main/config.py) file to include the new algorithm.
 
 ## Contributors
 
