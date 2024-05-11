@@ -35,7 +35,7 @@ This model is based on the idea of having multiple edge servers that are connect
 
 ### Set up environment variables
 
-Create a `.env` file in the root directory and follow the template created in the `.env.example` file.
+Create a `.env` file in the root directory and follow the template created in the [`.env.example`](https://github.com/minhtran241/edge-computing-models/blob/main/.env.example) file.
 
 ```bash
 CLOUD_ADDRESS=
@@ -64,10 +64,20 @@ python trigger.py
 This will require your input to specify the following parameters:
 
 - The role of the device (IoT device, edge server or cloud)
-  - Valid values: `iot`, `edge`, `cloud`
 - The device ID
 - The algorithm code [See the list of available algorithms](#available-algorithms)
 - Number of iterations
+
+### Available roles and arguments
+
+```
+================
+Available roles:
+iot <id> <algo_code> <iterations>
+edge <id>
+cloud <id>
+================
+```
 
 #### Available algorithms
 
