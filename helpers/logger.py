@@ -1,6 +1,5 @@
 import logging
 from colorlog import ColoredFormatter
-from constants import VALID_ROLES
 
 
 class Logger(logging.Logger):

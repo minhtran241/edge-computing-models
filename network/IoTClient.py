@@ -6,9 +6,6 @@ from typing import Any
 from constants import ITERATIONS
 from config import DATA_CONFIG
 from helpers.logger import Logger
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class IoTClient(threading.Thread):

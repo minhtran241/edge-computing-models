@@ -4,7 +4,7 @@ from constants import VALID_ROLES
 
 def get_nid(role: str, id: int = 0) -> str:
     """
-    Get the node ID based on the role and ID.
+    Get the network ID based on the role and ID (i0 for IoT, e0 for edge, c0 for cloud)
 
     Args:
         role (str): The role of the node.

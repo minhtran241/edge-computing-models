@@ -5,11 +5,8 @@ import socketio
 import time
 import queue
 from typing import Any
-from dotenv import load_dotenv
 from helpers.logger import Logger
 from config import DATA_CONFIG
-
-load_dotenv()
 
 
 class EdgeNode:
