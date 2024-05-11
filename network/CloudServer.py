@@ -9,6 +9,7 @@ from tabulate import tabulate
 
 load_dotenv()
 
+
 class CloudServer:
     """
     Cloud server class to receive processed data from edge nodes.
@@ -104,3 +105,10 @@ class CloudServer:
                 self.proctimes[device_id] = data["proctime"]
 
         server_thread.wait()
+
+    def stop(self):
+        """
+        Stop the cloud server.
+        """
+        self.logger.info("Stopping cloud server...")
+        self.sio.shutdown()

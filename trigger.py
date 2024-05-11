@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import List
 from constants import ITERATIONS
 from config import DATA_CONFIG
 from helpers.common import get_device_id, get_nid
@@ -22,7 +23,7 @@ def start_iot(device_id: str, algo_code: str, iterations: int):
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
 
-        iot_clients = []
+        iot_clients: List[IoTClient] = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
@@ -43,8 +44,7 @@ def start_iot(device_id: str, algo_code: str, iterations: int):
         print(f"An unexpected error occurred: {e}")
     finally:
         for iot_client in iot_clients:
-            iot_client.stop_client()
-        print("IoT clients stopped.")
+            iot_client.stop()
 
 
 def start_edge(device_id: str):
@@ -82,9 +82,7 @@ def start_edge(device_id: str):
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
             edge_node.logger.error(f"An error occurred: {e}")
-        edge_node.logger.info("Edge node stopped.")
         edge_node.stop()
-        sys.exit(0)
 
 
 def start_cloud(device_id: str):
@@ -95,8 +93,7 @@ def start_cloud(device_id: str):
         if isinstance(e, Exception):
             cloud.logger.error(f"An error occurred: {e}")
         cloud.print_stats()
-        cloud.logger.info("Cloud server stopped.")
-        cloud.sio.shutdown()
+        cloud.stop()
 
 
 if __name__ == "__main__":

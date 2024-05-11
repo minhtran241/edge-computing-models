@@ -59,9 +59,9 @@ class IoTClient(threading.Thread):
         """
         # Total file size of the data directory
         data_size = sum(
-			os.path.getsize(os.path.join(self.data_dir, f))
-			for f in os.listdir(self.data_dir)
-		)
+            os.path.getsize(os.path.join(self.data_dir, f))
+            for f in os.listdir(self.data_dir)
+        )
         formatted = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
 
         for _ in range(self.iterations):
@@ -96,13 +96,13 @@ class IoTClient(threading.Thread):
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
 
-    def stop_client(self):
+    def stop(self):
         """
         Stops the IoT client gracefully.
         """
+        self.logger.info("Stopping IoT client...")
         self.running.clear()
         self.disconnect_from_edge()
-        self.logger.info("IoT client stopped.")
 
     def disconnect_from_edge(self):
         """
@@ -112,4 +112,4 @@ class IoTClient(threading.Thread):
         self.logger.info(f"Disconnected from edge node ({self.edge_address}).")
 
     def __del__(self):
-        self.stop_client()
+        self.stop()

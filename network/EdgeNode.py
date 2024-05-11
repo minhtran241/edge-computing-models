@@ -123,7 +123,10 @@ class EdgeNode:
         """
         Stop the edge node gracefully.
         """
+        self.logger.info("Stopping edge node...")
         self.running.clear()
         self.sio_client.disconnect()
+        self.sio_server.shutdown()
+        # If there are still items in the queue, wait for them to be processed
         if self.queue.unfinished_tasks > 0:
             self.queue.join()
