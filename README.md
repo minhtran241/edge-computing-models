@@ -14,11 +14,68 @@ This model is based on the idea of having multiple edge servers that are connect
 
 ![Model 1](images/model1.png)
 
+### Current implementation
+
+- Raspberry Pi 3 for IoT devices
+- Raspberry Pi 4 for edge servers
+
 #### Advantages
 
 - Low latency: Data processing is done closer to the source, reducing the time it takes to get results. This is important for real-time applications.
 - Scalability: The edge servers can be easily scaled up or down based on the volume of data being generated.
 - Reliability: Having multiple edge servers improves reliability as there is no single point of failure.
+
+## Usage
+
+### Requirements
+
+- [Python 3.8](https://www.python.org/downloads/release/python-380/)
+- [Raspberry Pi](https://www.raspberrypi.org/) with Raspbian OS installed
+- [SocketIO](https://python-socketio.readthedocs.io/en/latest/)
+
+### Set up environment variables
+
+Create a `.env` file in the root directory and follow the template created in the `.env.example` file.
+
+```bash
+CLOUD_ADDRESS=
+NUM_EDGE_NODES=
+EDGE_1_ADDRESS=
+EDGE_2_ADDRESS=
+EDGE_3_ADDRESS=
+```
+
+> Note: The `NUM_EDGE_NODES` variable is used to specify the number of edge servers in the network. The `EDGE_1_ADDRESS`, `EDGE_2_ADDRESS`, and `EDGE_3_ADDRESS` variables are used to specify the IP addresses of the edge servers. If you have more than three edge servers, you can add more variables following the same pattern.
+
+### Run the code
+
+To run the code, you need to start the servers in the following order:
+
+1. Start the cloud server
+2. Start the edge servers
+3. Start the IoT devices
+
+For all the servers, you can run the following command:
+
+```bash
+python trigger.py
+```
+
+This will require your input to specify the following parameters:
+
+- The role of the device (IoT device, edge server or cloud)
+  - Valid values: `iot`, `edge`, `cloud`
+- The device ID
+- The algorithm code [See the list of available algorithms](#available-algorithms)
+- Number of iterations
+
+#### Available algorithms
+
+| Algorithm | Code | Description |
+| --- | --- | --- |
+| Smith-Waterman | `sw` | A dynamic programming algorithm for sequence alignment |
+| Tesseract OCR | `ocr` | An optical character recognition algorithm for text recognition |
+| YOLOv8 | `yolo` | An object detection algorithm for image recognition |
 
 ## Contributors
 
