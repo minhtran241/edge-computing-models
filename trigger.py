@@ -116,7 +116,7 @@ if __name__ == "__main__":
         device_id = get_nid(role, id)
         if role == "iot":
             algo_code = params[2] if len(params) > 2 else DATA_CONFIG.keys()[0]
-            iterations = params[3] if len(params) > 3 else ITERATIONS
+            iterations = int(params[3]) if len(params) > 3 else ITERATIONS
             start_iot(device_id, algo_code, iterations)
         elif role == "edge":
             start_edge(device_id)
