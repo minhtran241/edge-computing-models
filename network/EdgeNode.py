@@ -37,11 +37,12 @@ class EdgeNode:
         self.sio_client = socketio.Client()
         self.sio_server = socketio.Server()
         self.app = socketio.WSGIApp(self.sio_server)
-        self.logger = Logger(name=f"EdgeNode-{device_id}").get_logger()
+        self.logger = Logger("edge", self.device_id)
         self.queue = queue.Queue()
         self.transtime = 0
         self.proctime = 0
         self.running = threading.Event()
+        self.logger.error(f"Edge node started on port {self.port}")
 
     def process_iot_data(self):
         """

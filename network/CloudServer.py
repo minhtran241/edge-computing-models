@@ -22,10 +22,11 @@ class CloudServer:
         self.port = port
         self.sio = socketio.Server()
         self.app = socketio.WSGIApp(self.sio)
-        self.logger = Logger(name="CloudServer").get_logger()
+        self.logger = Logger("cloud", 0)
         self.data = {}
         self.transtimes = {}
         self.proctimes = {}
+        self.logger.error(f"Cloud server started on port {self.port}")
 
     def process_edge_data(self, device_id: str, data: Any):
         """

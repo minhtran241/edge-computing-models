@@ -6,7 +6,7 @@ from helpers.common import bytes_to_image
 from constants import YOLO_MODEL
 
 
-def predict_images(
+def _predict_images(
     img_batch: Union[List[str], str], model: YOLO = YOLO_MODEL
 ) -> List[Dict[str, Any]]:
     """
@@ -48,5 +48,5 @@ def yolo_inference(data: bytes) -> Dict[str, Any]:
     # Create the directory if it does not exist
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
     bytes_to_image(data, fpath)
-    data = predict_images(fpath)[0]
+    data = _predict_images(fpath)[0]
     return data

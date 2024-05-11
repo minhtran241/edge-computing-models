@@ -1,51 +1,27 @@
 import logging
-import sys
+from colorlog import ColoredFormatter
 
 
-class ColoredFormatter(logging.Formatter):
-    COLORS = {
-        "DEBUG": "\033[94m",
-        "INFO": "\033[92m",
-        "WARNING": "\033[93m",
-        "ERROR": "\033[91m",
-        "CRITICAL": "\033[91m",
-    }
-    RESET_COLOR = "\033[0m"
+class Logger(logging.Logger):
+    def __init__(self, role: str, id: int):
+        super().__init__(f"{role}-{id}")
+        self.setLevel(logging.DEBUG)
+        self.addHandler(self._get_console_handler())
 
-    def format(self, record):
-        levelname = record.levelname
-        color = self.COLORS.get(levelname, "")
-        reset_color = self.RESET_COLOR if color else ""
-        record.levelname = f"{color}{levelname}{reset_color}"
-        return super().format(record)
-
-
-class Logger:
-    def __init__(self, name: str, level: int = logging.INFO):
-        """
-        Initialize the Logger instance.
-
-        Args:
-            name (str): The name of the logger.
-            level (int, optional): The logging level. Defaults to logging.INFO.
-        """
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
+    @staticmethod
+    def _get_console_handler():
         formatter = ColoredFormatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            "%(log_color)s%(levelname)-8s%(reset)s %(bg_blue)s[%(name)s]%(reset)s %(message)s",
+            datefmt=None,
+            reset=True,
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red",
+            },
         )
-
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(level)
+        console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
-
-        self.logger.addHandler(console_handler)
-
-    def get_logger(self):
-        """
-        Get the logger instance.
-
-        Returns:
-            logging.Logger: The logger instance.
-        """
-        return self.logger
+        return console_handler

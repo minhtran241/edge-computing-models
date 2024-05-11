@@ -1,6 +1,7 @@
 bidict==0.23.1
 certifi==2024.2.2
 charset-normalizer==3.3.2
+colorlog==6.8.2
 contourpy==1.2.1
 cycler==0.12.1
 dnspython==2.6.1

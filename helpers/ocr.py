@@ -3,7 +3,7 @@ import numpy as np
 from pytesseract import image_to_string
 
 
-def enlarge_img(image: np.ndarray, scale_percent: int) -> np.ndarray:
+def _enlarge_img(image: np.ndarray, scale_percent: int) -> np.ndarray:
     """
     Enlarge an image by a certain percentage.
 
@@ -32,7 +32,7 @@ def ocr_license_plate(data: bytes) -> str:
         str: The extracted license plate.
     """
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
-    carplate_extract_img = enlarge_img(img, 150)
+    carplate_extract_img = _enlarge_img(img, 150)
     carplate_extract_img_gray = cv2.cvtColor(carplate_extract_img, cv2.COLOR_RGB2GRAY)
     carplate_extract_img_gray_blur = cv2.medianBlur(carplate_extract_img_gray, 3)
     return image_to_string(
