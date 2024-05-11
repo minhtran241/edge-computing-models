@@ -39,10 +39,18 @@ class IoTClient(threading.Thread):
         self.iterations = iterations
         self.sio = socketio.Client()  # Socket.IO client
         self.transtime = 0  # Transmission time to edge node (accumulated)
-        self.logger = Logger("iot", self.device_id)
+        self.logger = Logger(self.device_id)
         self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially
         self.lock = threading.Lock()  # Lock to ensure thread safety
+        self.logger.info(
+            {
+                "device_id": self.device_id,
+                "edge_address": self.edge_address,
+                "algo": self.algo,
+                "iterations": self.iterations,
+            }
+        )
 
     def send(self):
         """

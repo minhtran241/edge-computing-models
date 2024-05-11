@@ -12,21 +12,22 @@ class CloudServer:
     Cloud server class to receive processed data from edge nodes.
     """
 
-    def __init__(self, port: int = 20000):
+    def __init__(self, device_id: str, port: int = 20000):
         """
         Initialize the CloudServer instance.
 
         Args:
             port (int, optional): The port on which the cloud server will run. Defaults to 20000.
         """
+        self.device_id = device_id
         self.port = port
         self.sio = socketio.Server()
         self.app = socketio.WSGIApp(self.sio)
-        self.logger = Logger("cloud", 0)
+        self.logger = Logger(self.device_id)
         self.data = {}
         self.transtimes = {}
         self.proctimes = {}
-        self.logger.error(f"Cloud server started on port {self.port}")
+        self.logger.info({"device_id": self.device_id, "port": self.port})
 
     def process_edge_data(self, device_id: str, data: Any):
         """

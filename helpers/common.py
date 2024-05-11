@@ -1,4 +1,21 @@
 from typing import Any, Union
+from constants import VALID_ROLES
+
+
+def get_nid(role: str, id: int = 0) -> str:
+    """
+    Get the node ID based on the role and ID.
+
+    Args:
+        role (str): The role of the node.
+        id (int): The ID of the node.
+
+    Returns:
+        str: The node ID.
+    """
+    if role not in VALID_ROLES:
+        raise ValueError(f"Invalid role: {role}. Valid roles are: {VALID_ROLES}")
+    return f"{role[0]}{id}"
 
 
 def get_device_id(environ: Any) -> str:

@@ -1,10 +1,11 @@
 import logging
 from colorlog import ColoredFormatter
+from constants import VALID_ROLES
 
 
 class Logger(logging.Logger):
-    def __init__(self, role: str, id: int):
-        super().__init__(f"{role}-{id}")
+    def __init__(self, device_id: str = "unknown"):
+        super().__init__(device_id)
         self.setLevel(logging.DEBUG)
         self.addHandler(self._get_console_handler())
 

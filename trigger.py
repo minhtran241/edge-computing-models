@@ -2,26 +2,19 @@ import os
 import sys
 from constants import ITERATIONS
 from config import DATA_CONFIG
-from helpers.common import get_device_id
+from helpers.common import get_device_id, get_nid
 from dotenv import load_dotenv
 from network.IoTClient import IoTClient
 from network.EdgeNode import EdgeNode
 from network.CloudServer import CloudServer
 
 
-def start_iot():
+def start_iot(device_id: str, algo_code: str, iterations: int):
     try:
-        # Check for command-line argument
-        if len(sys.argv) < 4:
-            raise ValueError("Usage: python main.py iot <algo_code> <iterations>")
-        algo_code = sys.argv[2]
         if algo_code not in DATA_CONFIG:
             raise ValueError(f"Invalid algorithm code: {algo_code}")
 
         algo = DATA_CONFIG.get(algo_code)
-        iterations = int(sys.argv[3]) if len(sys.argv) > 2 else ITERATIONS
-
-        print(f"Running {algo['name']} IoT client with {iterations} iterations...")
 
         # Get edge node addresses
         NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
@@ -32,7 +25,7 @@ def start_iot():
         iot_clients = []
         for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
             iot_client = IoTClient(
-                device_id=f"iot-{i+1}",
+                device_id=device_id,
                 edge_address=edge_address,
                 data=algo["data_file"],
                 algo=algo_code,
@@ -54,9 +47,8 @@ def start_iot():
         print("IoT clients stopped.")
 
 
-def start_edge():
-    device_id = sys.argv[2] if len(sys.argv) > 2 else "edge-1"
-    edge_node = EdgeNode(device_id=device_id)
+def start_edge(device_id: str):
+    edge_node = EdgeNode(device_id)
 
     @edge_node.sio_server.event
     def connect(sid, environ):
@@ -95,9 +87,9 @@ def start_edge():
         sys.exit(0)
 
 
-def start_cloud():
+def start_cloud(device_id: str):
     try:
-        cloud = CloudServer()
+        cloud = CloudServer(device_id)
         cloud.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
@@ -110,15 +102,26 @@ def start_cloud():
 if __name__ == "__main__":
     load_dotenv()
 
-    if len(sys.argv) < 2:
-        raise ValueError("Usage: python main.py <role> optional_args")
-
-    role = sys.argv[1]
-    if role == "iot":
-        start_iot()
-    elif role == "edge":
-        start_edge()
-    elif role == "cloud":
-        start_cloud()
-    else:
-        raise ValueError(f"Invalid role: {role}")
+    # Print available roles with there arguments
+    print("================")
+    print("Available roles:")
+    print("iot <id> <algo_code> <iterations>")
+    print("edge <id>")
+    print("cloud <id>")
+    print("================")
+    try:
+        params = input("Set up device parameters: ").strip().split(" ")
+        role = params[0]
+        id = params[1]
+        device_id = get_nid(role, id)
+        if role == "iot":
+            algo_code = params[2] if len(params) > 2 else DATA_CONFIG.keys()[0]
+            iterations = params[3] if len(params) > 3 else ITERATIONS
+            start_iot(device_id, algo_code, iterations)
+        elif role == "edge":
+            start_edge(device_id)
+        elif role == "cloud":
+            start_cloud(device_id)
+    except:
+        print("Invalid arguments.")
+        sys.exit(1)
