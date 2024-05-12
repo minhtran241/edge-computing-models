@@ -2,22 +2,22 @@ from typing import Dict
 from helpers.common import fimg_from_dir
 from helpers.ocr import ocr_license_plate
 from helpers.yolo import yolo_inference
-from helpers.sw import records_to_txt, smith_waterman
-from helpers.sa import read_reviews, sentiment_analysis
+from helpers.sw import collect_sw_data, smith_waterman
+from helpers.sa import collect_sa_data, sentiment_analysis
 
 DATA_CONFIG: Dict[str, Dict[str, str]] = {
     "sw": {
         "name": "Smith-Waterman",
-        "data_dir": "data/hsa/small",
+        "data_dir": "data/hsa/large",
         "data_type": "text",
-        "preprocess": records_to_txt,
+        "preprocess": collect_sw_data,
         "process": smith_waterman,
     },
     "sa": {
         "name": "Sentiment Analysis",
         "data_dir": "data/reviews/large",
         "data_type": "text",
-        "preprocess": read_reviews,
+        "preprocess": collect_sa_data,
         "process": sentiment_analysis,
     },
     "ocr": {

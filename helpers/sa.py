@@ -7,7 +7,7 @@ from helpers.common import read_txt_lines
 nltk.download("vader_lexicon")
 
 
-def read_reviews(dir: str, filename: str = "reviews.txt") -> List[str]:
+def collect_sa_data(dir: str, filename: str = "reviews.txt") -> List[str]:
     """
     Read the reviews from the specified directory.
 
