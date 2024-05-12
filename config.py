@@ -15,7 +15,7 @@ DATA_CONFIG: Dict[str, Dict[str, str]] = {
     },
     "sa": {
         "name": "Sentiment Analysis",
-        "data_dir": "data/reviews",
+        "data_dir": "data/reviews/large",
         "data_type": "text",
         "preprocess": read_reviews,
         "process": sentiment_analysis,
