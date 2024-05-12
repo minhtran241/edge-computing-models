@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import List
 from constants import ITERATIONS
 from config import DATA_CONFIG
@@ -99,26 +98,28 @@ def start_cloud(device_id: str):
 if __name__ == "__main__":
     load_dotenv()
 
-    # Print available roles with there arguments
-    print("================")
+    # Print available roles with their arguments
+    print("=" * 40)
     print("Available roles:")
     print("iot <id> <algo_code> <iterations>")
     print("edge <id>")
     print("cloud <id>")
-    print("================")
+    print("=" * 40)
+
     try:
         params = input("Set up device parameters: ").strip().split(" ")
         role = params[0]
         id = params[1]
         device_id = get_nid(role, id)
+
         if role == "iot":
-            algo_code = params[2] if len(params) > 2 else DATA_CONFIG.keys()[0]
+            algo_code = params[2] if len(params) > 2 else list(DATA_CONFIG.keys())[0]
             iterations = int(params[3]) if len(params) > 3 else ITERATIONS
             start_iot(device_id, algo_code, iterations)
         elif role == "edge":
             start_edge(device_id)
         elif role == "cloud":
             start_cloud(device_id)
+
     except Exception as e:
-        print(f"An error occurred: {e}")
-        sys.exit(1)
+        print("An error occurred:", e)

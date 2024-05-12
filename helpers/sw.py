@@ -1,7 +1,7 @@
 from typing import Tuple, List
 
 
-def _sw_algo(
+def _smith_waterman_algo(
     seq1, seq2, match_score=2, mismatch_score=-1, gap_penalty=-1
 ) -> Tuple[int, str, str]:
     """
@@ -97,7 +97,9 @@ def get_records(filename: str) -> List[str]:
     return result
 
 
-def records_to_txt(dir: str, dbfilename: str = 'database.txt', queryfilename: str = 'query.txt') -> str:
+def records_to_txt(
+    dir: str, dbfilename: str = "database.txt", queryfilename: str = "query.txt"
+) -> str:
     """
     Convert the records from a FASTA file to a text format.
 
@@ -107,9 +109,9 @@ def records_to_txt(dir: str, dbfilename: str = 'database.txt', queryfilename: st
     Returns:
         str: The records in text format.
     """
-    dbfile = f'{dir}/{dbfilename}'
+    dbfile = f"{dir}/{dbfilename}"
     db_seq = get_records(dbfile)[0]
-    queryfile = f'{dir}/{queryfilename}'
+    queryfile = f"{dir}/{queryfilename}"
     query_seq = get_records(queryfile)[0]
     result = db_seq + "\n" + query_seq
     return result
@@ -128,4 +130,4 @@ def smith_waterman(text: str) -> Tuple[int, str, str]:
     # seq1 and seq2 are separated by a newline character
     records = text.split("\n")
     # records[0] is db sequence, records[1] is query sequence
-    return _sw_algo(records[0], records[1])
+    return _smith_waterman_algo(records[0], records[1])
