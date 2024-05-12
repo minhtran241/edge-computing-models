@@ -4,6 +4,8 @@ from typing import List, Tuple
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from helpers.common import read_txt_lines
 
+nltk.download("vader_lexicon")
+
 
 def read_reviews(dir: str, filename: str = "reviews.txt") -> List[str]:
     """
