@@ -93,11 +93,11 @@ def fimg_from_dir(dir: str, out_format: str = "bytes") -> Any:
     Get the first image from the specified directory.
 
     Args:
-            dir (str): The directory containing the images.
-            out_format (str): The output format ("bytes" or "path").
+        dir (str): The directory containing the images.
+        out_format (str): The output format ("bytes" or "path").
 
     Returns:
-            Any: The image data in bytes or the path to the image file.
+        Any: The image data in bytes or the path to the image file.
     """
     img_files = [f for f in os.listdir(dir) if f.endswith((".jpg", ".jpeg", ".png"))]
     if not img_files:

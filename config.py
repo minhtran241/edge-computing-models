@@ -8,7 +8,7 @@ from helpers.sa import collect_sa_data, sentiment_analysis
 DATA_CONFIG: Dict[str, Dict[str, str]] = {
     "sw": {
         "name": "Smith-Waterman",
-        "data_dir": "data/hsa/large",
+        "data_dir": "data/seq_align/large",
         "data_type": "text",
         "preprocess": collect_sw_data,
         "process": smith_waterman,
