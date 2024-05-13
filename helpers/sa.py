@@ -33,7 +33,6 @@ def _sa_algo(text: str) -> str:
     """
     sia = SentimentIntensityAnalyzer()
     score = sia.polarity_scores(text)
-    print(text, score["compound"])
     if score["compound"] >= 0.05:
         return "good"
     elif score["compound"] <= -0.05:

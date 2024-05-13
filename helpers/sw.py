@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 
@@ -31,6 +31,20 @@ def _get_records(filename: str) -> List[str]:
     result.pop(0)  # Remove the first element (empty string or header)
 
     return result
+
+
+def get_ids(filename: str) -> List[str]:
+    """
+    Get the IDs from a FASTA file.
+
+    Args:
+        file (str): The name of the FASTA file.
+
+    Returns:
+        List[str]: A list of IDs.
+    """
+    with open(filename, "r") as f:
+        return [line[5:].split()[0] for line in f if line.startswith(">hsa:")]
 
 
 def _get_matrix(filename: str) -> Tuple[List[List[int]], List[str]]:
@@ -222,7 +236,7 @@ def collect_sw_data(
     queryfilename: str = "query.txt",
     matrixfilename: str = "matrix.txt",
     alphabetfilename: str = "alphabet.txt",
-) -> Tuple[str, List[List[int]], List[str]]:
+) -> Tuple[List[str], List[str], List[List[int]], str]:
     """
     Collect the data needed for pairwise sequence alignment.
 
@@ -234,30 +248,42 @@ def collect_sw_data(
         alphabetfilename (str): The name of the alphabet file.
 
     Returns:
-        Tuple[str, str, List[List[int]], List[str]]: The database sequence, the query sequence, the substitution matrix, and the alphabet.
+        Tuple[List[str], List[str], List[List[int]], str]: The database sequences, the query sequences, the substitution matrix, and the alphabet.
     """
     dbfile = f"{dir}/{dbfilename}"
-    seq1 = _get_records(dbfile)[0]
+    seq1s = _get_records(dbfile)
     queryfile = f"{dir}/{queryfilename}"
-    seq2 = _get_records(queryfile)[0]
+    seq2s = _get_records(queryfile)
     matrixfile = f"{dir}/{matrixfilename}"
     matrix = _get_matrix(matrixfile)
     alphabetfile = f"{dir}/{alphabetfilename}"
     alphabet = _get_alphabet(alphabetfile)
-    return (seq1, seq2, matrix, alphabet)
+    return (seq1s, seq2s, matrix, alphabet)
 
 
 def smith_waterman(
-    sw_data: Tuple[str, str, List[List[int]], List[str]]
-) -> Tuple[int, str, str]:
+    sw_data: Tuple[List[str], List[str], List[List[int]], str]
+) -> Union[List[Tuple[int, List[int], List[int]]], Tuple[int, List[int], List[int]]]:
     """
-    Perform pairwise sequence alignment using the Smith-Waterman algorithm.
+    Perform the Smith-Waterman algorithm on the given sequences.
 
     Args:
-        sw_data (Tuple[str, str, List[List[int]], List[str]]): The database sequence, the query sequence, the substitution matrix, and the alphabet.
+        sw_data (Tuple[List[str], List[str], List[List[int]], str]): The database sequences, the query sequences, the substitution matrix, and the alphabet.
 
     Returns:
-        Tuple[int, str, str]: The maximum alignment score, the first aligned sequence, and the second aligned sequence.
+        Union[List[Tuple[int, List[int], List[int]]], Tuple[int, List[int], List[int]]]: The maximum alignment score, the indices for the first aligned sequence, and the indices for the second aligned sequence. If there are multiple pairs of sequences, return a list of tuples.
     """
-    seq1, seq2, matrix, alphabet = sw_data
-    return _water(alphabet, matrix, seq1, seq2)
+    seq1s = sw_data[0]
+    seq2s = sw_data[1]
+    matrix = sw_data[2]
+    alphabet = sw_data[3]
+
+    results = []
+    for seq1 in seq1s:
+        for seq2 in seq2s:
+            out = _water(alphabet, matrix, seq1, seq2)
+            results.append(out)
+
+    if len(results) > 1:
+        return results
+    return results[0]
