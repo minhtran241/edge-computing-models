@@ -1,3 +1,4 @@
+import os
 from typing import Tuple, List, Union
 import numpy as np
 
@@ -250,13 +251,13 @@ def collect_sw_data(
     Returns:
         Tuple[List[str], List[str], List[List[int]], str]: The database sequences, the query sequences, the substitution matrix, and the alphabet.
     """
-    dbfile = f"{dir}/{dbfilename}"
+    dbfile = os.path.join(dir, dbfilename)
+    queryfile = os.path.join(dir, queryfilename)
+    matrixfile = os.path.join(dir, matrixfilename)
+    alphabetfile = os.path.join(dir, alphabetfilename)
     seq1s = _get_records(dbfile)
-    queryfile = f"{dir}/{queryfilename}"
     seq2s = _get_records(queryfile)
-    matrixfile = f"{dir}/{matrixfilename}"
     matrix = _get_matrix(matrixfile)
-    alphabetfile = f"{dir}/{alphabetfilename}"
     alphabet = _get_alphabet(alphabetfile)
     return (seq1s, seq2s, matrix, alphabet)
 
