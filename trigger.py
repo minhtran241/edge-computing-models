@@ -1,6 +1,6 @@
 import os
 from typing import List
-from constants import ITERATIONS
+from constants import DEFAULT_ITERATIONS
 from config import DATA_CONFIG
 from helpers.common import get_device_id, get_nid
 from dotenv import load_dotenv
@@ -9,7 +9,7 @@ from network.EdgeNode import EdgeNode
 from network.CloudServer import CloudServer
 
 
-def start_iot(device_id: str, algo_code: str, iterations: int):
+def start_iot(device_id: str, algo_code: str, iterations: int) -> None:
     try:
         if algo_code not in DATA_CONFIG:
             raise ValueError(f"Invalid algorithm code: {algo_code}")
@@ -46,7 +46,7 @@ def start_iot(device_id: str, algo_code: str, iterations: int):
             iot_client.stop()
 
 
-def start_edge(device_id: str):
+def start_edge(device_id: str) -> None:
     edge_node = EdgeNode(device_id)
 
     @edge_node.sio_server.event
@@ -84,7 +84,7 @@ def start_edge(device_id: str):
         edge_node.stop()
 
 
-def start_cloud(device_id: str):
+def start_cloud(device_id: str) -> None:
     try:
         cloud = CloudServer(device_id)
         cloud.run()
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
         if role == "iot":
             algo_code = params[2] if len(params) > 2 else list(DATA_CONFIG.keys())[0]
-            iterations = int(params[3]) if len(params) > 3 else ITERATIONS
+            iterations = int(params[3]) if len(params) > 3 else DEFAULT_ITERATIONS
             start_iot(device_id, algo_code, iterations)
         elif role == "edge":
             start_edge(device_id)

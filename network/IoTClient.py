@@ -4,7 +4,7 @@ import time
 import threading
 from typing import Any
 from dotenv import load_dotenv
-from constants import ITERATIONS
+from constants import DEFAULT_ITERATIONS
 from config import DATA_CONFIG
 from helpers.logger import Logger
 
@@ -22,7 +22,7 @@ class IoTClient(threading.Thread):
         edge_address: str,
         data_dir: Any,
         algo: str,
-        iterations: int = ITERATIONS,
+        iterations: int = DEFAULT_ITERATIONS,
     ):
         """
         Initializes the IoTClient object.
