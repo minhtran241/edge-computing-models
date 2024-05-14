@@ -43,7 +43,8 @@ def generate_random_keywords_2(
 with open("data/acas/large/text.txt", "r") as file:
     text = file.read()
 
-keywords = generate_random_keywords_2(["A", "C", "G", "T"], 100)
+keywords = generate_random_keywords_2(["A", "C", "G", "T"], 100, 500)
+# keywords = generate_random_keywords(text, 100, 500)
 
 # Append the keywords to the file
 with open("data/acas/large/keywords.txt", "a") as file:
