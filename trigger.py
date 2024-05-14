@@ -47,37 +47,8 @@ def start_iot(device_id: str, algo_code: str, iterations: int) -> None:
 
 
 def start_edge(device_id: str) -> None:
-    edge_node = EdgeNode(device_id)
-
-    @edge_node.sio_server.event
-    def connect(sid, environ):
-        device_id = get_device_id(environ) or sid
-        edge_node.sio_server.save_session(sid, {"device_id": device_id})
-        edge_node.logger.info(f"IoT device {device_id} connected, session ID: {sid}")
-
-    @edge_node.sio_server.event
-    def disconnect(sid):
-        session = edge_node.sio_server.get_session(sid)
-        device_id = session["device_id"]
-        edge_node.logger.info(f"IoT device {device_id} disconnected")
-
-    @edge_node.sio_server.event
-    def recv(sid, data):
-        # session = edge_node.sio_server.get_session(sid)
-        # device_id = session["device_id"]
-        device_id = "iot-1"
-        if "data" in data and data["data"] is not None:
-            # Print the data received from the IoT device
-            edge_node.logger.info(f"Received data from IoT device {device_id}")
-            # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
-            edge_node.queue.put((device_id, data))
-        elif "acc_transtime" in data and data["acc_transtime"] is not None:
-            edge_node.transtime += data["acc_transtime"]
-            edge_node.logger.info(
-                f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
-            )
-
     try:
+        edge_node = EdgeNode(device_id)
         edge_node.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):

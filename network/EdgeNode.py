@@ -7,6 +7,7 @@ import queue
 from typing import Any
 from dotenv import load_dotenv
 from helpers.logger import Logger
+from helpers.common import get_device_id
 from config import DATA_CONFIG
 
 load_dotenv()
@@ -102,10 +103,49 @@ class EdgeNode:
             },
         )
 
+    def run_server(self):
+        """
+        Run the edge node server.
+        """
+        try:
+            eventlet.wsgi.server(eventlet.listen(("", self.port)), self.app)
+        except Exception as e:
+            self.logger.error(f"An error occurred: {e}")
+
     def run(self):
         """
         Run the edge node.
         """
+        server_thread = eventlet.spawn(self.run_server)
+
+        @self.sio_server.event
+        def connect(sid, environ):
+            device_id = get_device_id(environ) or sid
+            self.sio_server.save_session(sid, {"device_id": device_id})
+            self.logger.info(f"IoT device {device_id} connected, session ID: {sid}")
+
+        @self.sio_server.event
+        def disconnect(sid):
+            session = self.sio_server.get_session(sid)
+            device_id = session["device_id"]
+            self.logger.info(f"IoT device {device_id} disconnected")
+
+        @self.sio_server.event
+        def recv(sid, data):
+            session = self.sio_server.get_session(sid)
+            device_id = session["device_id"]
+            # device_id = "iot-1"
+            if "data" in data and data["data"] is not None:
+                # Print the data received from the IoT device
+                self.logger.info(f"Received data from IoT device {device_id}")
+                # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
+                self.queue.put((device_id, data))
+            elif "acc_transtime" in data and data["acc_transtime"] is not None:
+                self.transtime += data["acc_transtime"]
+                self.logger.info(
+                    f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
+                )
+
         try:
             self.running.set()
             pidt = threading.Thread(target=self.process_iot_data, daemon=True)
@@ -114,7 +154,7 @@ class EdgeNode:
                 self.cloud_addr, headers={"device_id": self.device_id}
             )
             self.logger.info(f"Connected to cloud ({self.cloud_addr})")
-            eventlet.wsgi.server(eventlet.listen(("", self.port)), self.app)
+            server_thread.wait()
         except Exception as e:
             pidt.join()
             self.logger.error(f"An error occurred: {e}")
