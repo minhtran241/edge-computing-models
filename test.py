@@ -40,15 +40,15 @@ def generate_random_keywords_2(
     return keywords
 
 
-with open("data/acas/large/text.txt", "r") as file:
+with open("data/acas/large/dna.txt", "r") as file:
     text = file.read()
 
-# keywords1 = generate_random_keywords_2(["A", "C", "G", "T"], 300)
-keywords2 = generate_random_keywords(text, 650, 1)
+# keywords1 = generate_random_keywords_2(["A", "C", "G", "T"], 300, 50)
+keywords2 = generate_random_keywords(text, 300, 50)
 
 keywords = keywords2
 
 # Append the keywords to the file
-with open("data/acas/large/keywords.txt", "a") as file:
+with open("data/acas/small/keywords.txt", "a") as file:
     for keyword in keywords:
         file.write(keyword + "\n")

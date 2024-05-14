@@ -19,7 +19,7 @@ def _get_keywords(filename: str) -> List[str]:
 
 
 def collect_ac_data(
-    dir: str, text_file: str = "text.txt", keyword_file: str = "keywords.txt"
+    dir: str, text_file: str = "dna.txt", keyword_file: str = "keywords.txt"
 ) -> Tuple[str, List[str]]:
     """
     Read the text and keywords from the specified directory.
