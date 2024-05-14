@@ -1,95 +1,51 @@
-import os
+# Generate random keywords file (about 100 keywords) from the text using the Aho-Corasick automaton for testing.
+
+
 import ahocorasick
+import os
+import random
+import string
 from typing import List, Tuple
 
 
-def _get_keywords(filename: str) -> List[str]:
+def generate_random_keywords(
+    text: str, keyword_len: int, num_keywords: int = 100
+) -> List[str]:
     """
-    Read the keywords from the specified file.
+    Generate random keywords from the text using the Aho-Corasick automaton.
 
     Args:
-    - filename (str): The file containing the keywords.
+    - text (str): Input text to generate keywords.
+    - keyword_len (int): Length of the keyword.
+    - num_keywords (int): Number of keywords to generate.
 
     Returns:
-    - list: List of keywords read from the file.
+    - list: List of generated keywords.
     """
-    with open(filename, "r") as file:
-        keywords = [line.strip() for line in file]
+    keywords = set()
+    while len(keywords) < num_keywords:
+        start = random.randint(0, len(text) - keyword_len)
+        keyword = text[start : start + keyword_len]
+        keywords.add(keyword)
+    return list(keywords)
+
+
+def generate_random_keywords_2(
+    alphabet: List[str], keyword_len: int, num_keywords: int = 50
+):
+    keywords = []
+    while len(keywords) < num_keywords:
+        keyword = "".join(random.choices(alphabet, k=keyword_len))
+        keywords.append(keyword)
     return keywords
 
 
-def collect_ac_data(
-    dir: str, text_file: str = "text.txt", keyword_file: str = "keywords.txt"
-) -> Tuple[str, List[str]]:
-    """
-    Read the text and keywords from the specified directory.
+with open("data/acas/large/text.txt", "r") as file:
+    text = file.read()
 
-    Args:
-    - dir (str): The directory containing the text and keywords.
-    - text_file (str): The file containing the text.
-    - keyword_file (str): The file containing the keywords.
+keywords = generate_random_keywords_2(["A", "C", "G", "T"], 100)
 
-    Returns:
-    - tuple: Tuple containing the text and list of keywords.
-    """
-    text = os.path.join(dir, text_file)
-    with open(text, "r") as file:
-        text = file.read()
-    keywords = os.path.join(dir, keyword_file)
-    return text, _get_keywords(keywords)
-
-
-def _build_automaton(keywords: List[str]) -> ahocorasick.Automaton:
-    """
-    Build Aho-Corasick automaton from a list of keywords.
-
-    Args:
-    - keywords (list): List of keywords to build the automaton.
-
-    Returns:
-    - AhoCorasick object: Aho-Corasick automaton.
-    """
-    A = ahocorasick.Automaton()
-    for idx, key in enumerate(keywords):
-        A.add_word(key, (idx, key))
-    A.make_automaton()
-    return A
-
-
-def _acas_search(text: str, automaton: ahocorasick.Automaton):
-    """
-    Search for keywords in the input text using Aho-Corasick algorithm.
-
-    Args:
-    - text (str): Input text to search for keywords.
-    - automaton (AhoCorasick object): Aho-Corasick automaton.
-
-    Returns:
-    - int: Number of matched keywords.
-    """
-    matched_keywords = set()
-    for end_index, (insert_order, original_value) in automaton.iter(text):
-        start_index = end_index - len(original_value) + 1
-        matched_keywords.add(original_value)
-    return len(matched_keywords)
-
-
-def acohorasick_search(data: Tuple[str, List[str]]):
-    """
-    Main function to run Aho-Corasick algorithm on input text.
-
-    Args:
-    - data (tuple): Tuple containing the input text and list of keywords.
-
-    Returns:
-    - list: List of matched keywords.
-    """
-    text, keywords = data
-    automaton = _build_automaton(keywords)
-    matched_keywords = _acas_search(text, automaton)
-    return matched_keywords
-
-
-data = collect_ac_data("data/acas/large")
-result = acohorasick_search(data)
-print(result)
+# Append the keywords to the file
+with open("data/acas/large/keywords.txt", "a") as file:
+    for keyword in keywords:
+        file.write(keyword + "\n")
