@@ -23,7 +23,7 @@ DATA_CONFIG: Dict[str, Dict[str, str]] = {
     },
     "ac": {
         "name": "Aho-Corasick Algorithm",
-        "data_dir": "data/ac/small",
+        "data_dir": "data/ac/large",
         "data_type": "text",
         "preprocess": collect_ac_data,
         "process": acohorasick_search,
