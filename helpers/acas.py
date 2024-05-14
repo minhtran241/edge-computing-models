@@ -86,5 +86,4 @@ def acohorasick_search(data: Tuple[str, List[str]]) -> List[str]:
     text, keywords = data
     automaton = _build_automaton(keywords)
     matched_keywords = _acas_search(text, automaton)
-    print(f"Matched keywords: {matched_keywords}")
     return matched_keywords
