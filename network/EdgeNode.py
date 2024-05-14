@@ -149,7 +149,9 @@ class EdgeNode:
             pidt = threading.Thread(target=self.process_iot_data, daemon=True)
             pidt.start()
             self.sio_client.connect(
-                self.cloud_addr, headers={"device_id": self.device_id}
+                self.cloud_addr,
+                headers={"device_id": self.device_id},
+                transports=["websocket"],
             )
             self.logger.info(f"Connected to cloud ({self.cloud_addr})")
             server_thread.wait()

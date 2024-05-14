@@ -89,12 +89,15 @@ class IoTClient(threading.Thread):
         Runs the IoT client.
         """
         try:
-            self.sio.connect(self.edge_address, headers={"device_id": self.device_id})
+            self.sio.connect(
+                self.edge_address,
+                headers={"device_id": self.device_id},
+                transports=["websocket"],
+            )
             self.logger.info(f"Connected to edge node ({self.edge_address})")
             self.send()
             # Wait, keep the connections with edge nodes alive
-            while self.running.is_set():
-                time.sleep(1)
+            self.sio.wait()
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
 
