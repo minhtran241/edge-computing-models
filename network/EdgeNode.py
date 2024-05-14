@@ -136,8 +136,6 @@ class EdgeNode:
             device_id = session["device_id"]
             # device_id = "iot-1"
             if "data" in data and data["data"] is not None:
-                # Print the data received from the IoT device
-                self.logger.info(f"Received data from IoT device {device_id}")
                 # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
                 self.queue.put((device_id, data))
             elif "acc_transtime" in data and data["acc_transtime"] is not None:

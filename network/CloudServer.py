@@ -24,7 +24,7 @@ class CloudServer:
         """
         self.device_id = device_id
         self.port = port
-        self.sio = socketio.Server()
+        self.sio = socketio.Server(always_connect=True)
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
         self.data = {}
