@@ -37,7 +37,7 @@ class IoTClient(threading.Thread):
         self.data_dir = data_dir
         self.algo = algo
         self.iterations = iterations
-        self.sio = socketio.Client()  # Socket.IO client
+        self.sio = socketio.Client()
         self.transtime = 0  # Transmission time to edge node (accumulated)
         self.logger = Logger(self.device_id)
         self.running = threading.Event()  # Event to control the client's running state
@@ -92,7 +92,9 @@ class IoTClient(threading.Thread):
             self.sio.connect(self.edge_address, headers={"device_id": self.device_id})
             self.logger.info(f"Connected to edge node ({self.edge_address})")
             self.send()
-            self.sio.wait()
+            # Wait, keep the connections with edge nodes alive
+            while self.running.is_set():
+                time.sleep(1)
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
 
