@@ -69,7 +69,9 @@ def _acas_search(text: str, automaton: ahocorasick.Automaton) -> List[str]:
     """
     match_keywords = []
     for end_index, (insert_order, original_value) in automaton.iter(text):
-        match_keywords.append(original_value)
+        # Only consider unique keywords
+        if original_value not in match_keywords:
+            match_keywords.append(original_value)
     return match_keywords
 
 
