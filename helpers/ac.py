@@ -56,7 +56,7 @@ def _build_automaton(keywords: List[str]) -> ahocorasick.Automaton:
     return A
 
 
-def _acas_search(text: str, automaton: ahocorasick.Automaton) -> int:
+def _ac_search(text: str, automaton: ahocorasick.Automaton) -> int:
     """
     Search for keywords in the input text using Aho-Corasick algorithm.
 
@@ -85,5 +85,5 @@ def acohorasick_search(data: Tuple[str, List[str]]) -> int:
     """
     text, keywords = data
     automaton = _build_automaton(keywords)
-    num_matched_keywords = _acas_search(text, automaton)
+    num_matched_keywords = _ac_search(text, automaton)
     return num_matched_keywords

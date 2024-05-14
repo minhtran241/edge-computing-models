@@ -4,7 +4,7 @@ from helpers.ocr import ocr_license_plate
 from helpers.yolo import yolo_inference
 from helpers.sw import collect_sw_data, smith_waterman
 from helpers.sa import collect_sa_data, sentiment_analysis
-from helpers.acas import collect_ac_data, acohorasick_search
+from helpers.ac import collect_ac_data, acohorasick_search
 
 DATA_CONFIG: Dict[str, Dict[str, str]] = {
     "sw": {
@@ -21,9 +21,9 @@ DATA_CONFIG: Dict[str, Dict[str, str]] = {
         "preprocess": collect_sa_data,
         "process": sentiment_analysis,
     },
-    "acas": {
+    "ac": {
         "name": "Aho-Corasick Algorithm",
-        "data_dir": "data/acas/large",
+        "data_dir": "data/ac/large",
         "data_type": "text",
         "preprocess": collect_ac_data,
         "process": acohorasick_search,
