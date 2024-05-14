@@ -57,15 +57,24 @@ def _build_automaton(keywords: List[str]) -> ahocorasick.Automaton:
 
 
 def _acas_search(text: str, automaton: ahocorasick.Automaton):
-    match_keywords = {}
+    """
+    Search for keywords in the input text using Aho-Corasick algorithm.
+
+    Args:
+    - text (str): Input text to search for keywords.
+    - automaton (AhoCorasick object): Aho-Corasick automaton.
+
+    Returns:
+    - int: Number of matched keywords.
+    """
+    matched_keywords = set()
     for end_index, (insert_order, original_value) in automaton.iter(text):
         start_index = end_index - len(original_value) + 1
-        match_keywords.setdefault(str(original_value), [])
-        match_keywords[str(original_value)].append((start_index, end_index))
-    return match_keywords
+        matched_keywords.add(original_value)
+    return len(matched_keywords)
 
 
-def acohorasick_search(data: Tuple[str, List[str]]) -> List[str]:
+def acohorasick_search(data: Tuple[str, List[str]]):
     """
     Main function to run Aho-Corasick algorithm on input text.
 
@@ -78,10 +87,9 @@ def acohorasick_search(data: Tuple[str, List[str]]) -> List[str]:
     text, keywords = data
     automaton = _build_automaton(keywords)
     matched_keywords = _acas_search(text, automaton)
-    print(f"Matched keywords: {matched_keywords}")
     return matched_keywords
 
 
-data = collect_ac_data("data/acas")
+data = collect_ac_data("data/acas/large")
 result = acohorasick_search(data)
 print(result)
