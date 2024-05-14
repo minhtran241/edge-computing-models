@@ -36,7 +36,7 @@ class EdgeNode:
         self.cloud_addr = cloud_addr
         self.port = port
         self.sio_client = socketio.Client()
-        self.sio_server = socketio.Server()
+        self.sio_server = socketio.Server(always_connect=True, logger=True)
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(self.device_id)
         self.queue = queue.Queue()

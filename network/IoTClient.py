@@ -37,7 +37,7 @@ class IoTClient(threading.Thread):
         self.data_dir = data_dir
         self.algo = algo
         self.iterations = iterations
-        self.sio = socketio.Client(handle_sigint=True, reconnection=True)
+        self.sio = socketio.Client(handle_sigint=True, reconnection=True, logger=True)
         self.transtime = 0  # Transmission time to edge node (accumulated)
         self.logger = Logger(self.device_id)
         self.running = threading.Event()  # Event to control the client's running state

@@ -2,7 +2,7 @@ import os
 from typing import List
 from constants import DEFAULT_ITERATIONS
 from config import DATA_CONFIG
-from helpers.common import get_device_id, get_nid
+from helpers.common import get_nid
 from dotenv import load_dotenv
 from network.IoTClient import IoTClient
 from network.EdgeNode import EdgeNode
