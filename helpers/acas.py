@@ -56,12 +56,20 @@ def _build_automaton(keywords: List[str]) -> ahocorasick.Automaton:
     return A
 
 
-def _acas_search(text: str, automaton: ahocorasick.Automaton):
-    match_keywords = {}
+def _acas_search(text: str, automaton: ahocorasick.Automaton) -> List[str]:
+    """
+    Search for keywords in the input text using Aho-Corasick algorithm.
+
+    Args:
+    - text (str): Input text to search for keywords.
+    - automaton (AhoCorasick object): Aho-Corasick automaton.
+
+    Returns:
+    - list: List of matched keywords.
+    """
+    match_keywords = []
     for end_index, (insert_order, original_value) in automaton.iter(text):
-        start_index = end_index - len(original_value) + 1
-        match_keywords.setdefault(str(original_value), [])
-        match_keywords[str(original_value)].append((start_index, end_index))
+        match_keywords.append(original_value)
     return match_keywords
 
 
