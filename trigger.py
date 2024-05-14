@@ -63,8 +63,9 @@ def start_edge(device_id: str) -> None:
 
     @edge_node.sio_server.event
     def recv(sid, data):
-        session = edge_node.sio_server.get_session(sid)
-        device_id = session["device_id"]
+        # session = edge_node.sio_server.get_session(sid)
+        # device_id = session["device_id"]
+        device_id = "iot-1"
         if "data" in data and data["data"] is not None:
             # Print the data received from the IoT device
             edge_node.logger.info(f"Received data from IoT device {device_id}")
