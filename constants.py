@@ -5,5 +5,4 @@ from ultralytics import YOLO
 VALID_ROLES: List[str] = ["iot", "edge", "cloud"]
 DEFAULT_ITERATIONS: int = 100
 YOLO_MODEL: YOLO = YOLO(model=os.getenv("YOLOV8_MODEL_PATH") or "yolov8m.pt")
-DATA_SIZES: List[int] = ["small", "medium", "large"]
 DEFAULT_DATA_SIZE: str = "small"

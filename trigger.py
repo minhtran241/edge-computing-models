@@ -1,6 +1,6 @@
 import os
 from typing import List
-from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE, DATA_SIZES
+from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE
 from config import DATA_CONFIG
 from helpers.common import get_nid
 from dotenv import load_dotenv
@@ -16,11 +16,10 @@ def start_iot(device_id: str, algo_code: str, data_size: str, iterations: int) -
     try:
         if algo_code not in DATA_CONFIG:
             raise ValueError(f"Invalid algorithm code: {algo_code}")
-        if (
-            data_size not in DATA_SIZES
-            or data_size not in DATA_CONFIG[algo_code]["available_sizes"]
-        ):
-            raise ValueError(f"Invalid data size: {data_size}")
+        if data_size not in DATA_CONFIG[algo_code]["available_sizes"]:
+            raise ValueError(
+                f"Invalid data size: {data_size}, available sizes for {algo_code}: {DATA_CONFIG[algo_code]['available_sizes']}"
+            )
 
         algo = DATA_CONFIG.get(algo_code)
 
