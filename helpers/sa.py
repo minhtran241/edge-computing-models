@@ -4,6 +4,7 @@ from typing import List, Tuple
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from helpers.common import read_txt_lines
 
+# Download the vader lexicon (if not already downloaded)
 nltk.download("vader_lexicon")
 
 
@@ -45,7 +46,7 @@ def sentiment_analysis(texts: List[str]) -> Tuple[float, float, float]:
     # Perform sentiment analysis on each text
     sentiments = [_sa_algo(text) for text in texts]
 
-    # Calculate percentage of each sentiment
+    # Calculate the percentage of good, bad, and neutral inputs
     total_res = len(sentiments)
     good_percent = (sentiments.count("good") / total_res) * 100
     bad_percent = (sentiments.count("bad") / total_res) * 100
