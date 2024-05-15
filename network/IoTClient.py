@@ -97,7 +97,8 @@ class IoTClient(threading.Thread):
             self.logger.info(f"Connected to edge node ({self.edge_address})")
             self.send()
             # Wait, keep the connections with edge nodes alive
-            self.sio.wait()
+            while self.running.is_set():
+                time.sleep(1)
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
 
