@@ -100,6 +100,10 @@ class CloudServer:
             device_id = session["device_id"]
             if "data" in data and data["data"] is not None:
                 self.process_edge_data(device_id, data)
+                # Print amount of files received from each edge node
+                self.logger.info(
+                    f"Number of files received from edge node {device_id}: {len(self.data[device_id])}"
+                )
             elif "transtime" in data and "proctime" in data:
                 self.transtimes[device_id] = data["transtime"]
                 self.proctimes[device_id] = data["proctime"]
