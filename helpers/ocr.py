@@ -33,10 +33,9 @@ def ocr_license_plate(data: bytes) -> str:
     """
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     # Enlarge the image scale by 150% to improve OCR accuracy if the image is too small
-    if img.shape[0] < 100 or img.shape[1] < 100:
-        carplate_extract_img = _enlarge_img(img, 150)
-    else:
-        carplate_extract_img = img
+    carplate_extract_img = (
+        _enlarge_img(img, 150) if img.shape[0] < 100 or img.shape[1] < 100 else img
+    )
     carplate_extract_img_gray = cv2.cvtColor(carplate_extract_img, cv2.COLOR_RGB2GRAY)
     carplate_extract_img_gray_blur = cv2.medianBlur(carplate_extract_img_gray, 3)
     return image_to_string(
