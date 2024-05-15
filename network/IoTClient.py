@@ -22,6 +22,7 @@ class IoTClient(threading.Thread):
         edge_address: str,
         data_dir: Any,
         algo: str,
+        data_size: int,
         iterations: int = DEFAULT_ITERATIONS,
     ):
         """
@@ -34,7 +35,7 @@ class IoTClient(threading.Thread):
         super().__init__()
         self.device_id = device_id
         self.edge_address = edge_address
-        self.data_dir = data_dir
+        self.data_dir = os.path.join(data_dir, data_size)
         self.algo = algo
         self.iterations = iterations
         self.sio = socketio.Client(handle_sigint=True, reconnection=True, logger=True)
