@@ -86,7 +86,6 @@ cloud <id>
 | --- | --- | --- |
 | Smith-Waterman | `sw` | A dynamic programming algorithm for sequence alignment |
 | Sentiment Analysis | `sa` | An algorithm for analyzing the sentiment of text data |
-| Aho-Corasick | `ac` | A string searching algorithm for finding multiple patterns in text |
 | Tesseract OCR | `ocr` | An optical character recognition algorithm for text recognition |
 | YOLOv8 | `yolo` | An object detection algorithm for image recognition |
 
