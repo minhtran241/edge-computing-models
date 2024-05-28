@@ -31,10 +31,10 @@ def start_iot(
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
 
-        for i, edge_address in enumerate(TARGET_NODE_ADDRESSES):
+        for i, ta in enumerate(TARGET_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
-                edge_address=edge_address,
+                target_address=ta,
                 data_dir=algo["data_dir"],
                 algo=algo_code,
                 size_option=size_option,
