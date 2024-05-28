@@ -1,6 +1,6 @@
 import os
 from typing import List
-from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE, ARCHITECTURES
+from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION, ARCHITECTURES
 from config import DATA_CONFIG
 from helpers.common import get_nid
 from dotenv import load_dotenv
@@ -10,7 +10,7 @@ from network.CloudServer import CloudServer
 
 
 def start_iot(
-    device_id: str, algo_code: str, data_size: str, iterations: int, arch: str
+    device_id: str, algo_code: str, size_option: str, iterations: int, arch: str
 ) -> None:
     iot_clients: List[IoTClient] = (
         []
@@ -18,26 +18,26 @@ def start_iot(
     try:
         if algo_code not in DATA_CONFIG:
             raise ValueError(f"Invalid algorithm code: {algo_code}")
-        if data_size not in DATA_CONFIG[algo_code]["available_sizes"]:
+        if size_option not in DATA_CONFIG[algo_code]["available_sizes"]:
             raise ValueError(
-                f"Invalid data size: {data_size}, available sizes for {algo_code}: {DATA_CONFIG[algo_code]['available_sizes']}"
+                f"Invalid data size: {size_option}, available sizes for {algo_code}: {DATA_CONFIG[algo_code]['available_sizes']}"
             )
 
         algo = DATA_CONFIG.get(algo_code)
 
         # Get edge node addresses
         NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
-        EDGE_NODE_ADDRESSES = [
+        TARGET_NODE_ADDRESSES = [
             os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
         ]
 
-        for i, edge_address in enumerate(EDGE_NODE_ADDRESSES):
+        for i, edge_address in enumerate(TARGET_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
                 edge_address=edge_address,
                 data_dir=algo["data_dir"],
                 algo=algo_code,
-                data_size=data_size,
+                size_option=size_option,
                 arch=arch,
                 iterations=iterations,
             )
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # Print available roles with their arguments
     print("=" * 40)
     print("Available roles:")
-    print("iot <id> <algo_code> <data_size> <iterations>")
+    print("iot <id> <algo_code> <size_option> <iterations>")
     print("edge <id>")
     print("cloud <id>")
     print("=" * 40)
@@ -98,9 +98,15 @@ if __name__ == "__main__":
 
         if role == "iot":
             algo_code = params[2] if len(params) > 2 else list(DATA_CONFIG.keys())[0]
-            data_size = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE
+            size_option = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE_OPTION
             iterations = int(params[4]) if len(params) > 4 else DEFAULT_ITERATIONS
-            start_iot(device_id, algo_code, data_size, iterations, arch)
+            start_iot(
+                device_id=device_id,
+                algo_code=algo_code,
+                size_option=size_option,
+                iterations=iterations,
+                arch=arch,
+            )
         elif role == "edge":
             start_edge(device_id)
         elif role == "cloud":
