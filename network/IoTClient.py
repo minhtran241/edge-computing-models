@@ -75,6 +75,12 @@ class IoTClient(threading.Thread):
                 self.transtime += tt
 
         with self.lock:
+            self.logger.info(
+                {
+                    "acc_transtime": self.transtime,
+                    "acc_proctime": self.proctime,
+                }
+            )
             self.sio.emit(
                 "recv",
                 data={"acc_transtime": self.transtime, "acc_proctime": self.proctime},

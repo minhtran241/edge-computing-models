@@ -130,6 +130,7 @@ class CloudServer:
                 )
 
             elif "transtime" in data and "proctime" in data:
+                self.logger.info(data)
                 self.transtimes[device_id] += data["acc_transtime"]
                 self.proctimes[device_id] += data["acc_proctime"]
 
