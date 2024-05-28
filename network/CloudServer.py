@@ -35,6 +35,8 @@ class CloudServer:
         self.logger = Logger(self.device_id)
         self.queue = queue.Queue()
         self.data = {}
+        self.num_recv_packets = 0
+        self.num_proc_packets = 0
         self.transtimes = {}
         self.proctimes = {}
         self.logger.info(
@@ -50,9 +52,12 @@ class CloudServer:
                 device_id, data = self.queue.get(timeout=1)
                 result, pt = process_data(data["data"], data["algo"])
                 self.queue.task_done()
+                self.num_proc_packets += 1
+                self.logger.info(
+                    f"Number of packets processed: {self.num_proc_packets}. Processed data from node {device_id}: {result}"
+                )
                 with threading.Lock():
                     self.proctimes[device_id] += pt
-                    self.logger.info(f"Processed data from node {device_id}: {result}")
                     self.data.setdefault(device_id, []).append(
                         {
                             "data_size": data["data_size"],
@@ -127,9 +132,8 @@ class CloudServer:
                 else:
                     self.logger.info(f"Result from node {device_id}: {data}")
                     self.data[device_id].append(data)
-                self.logger.info(
-                    f"Files received from node {device_id}: {len(self.data[device_id])}"
-                )
+                self.num_recv_packets += 1
+                self.logger.info(f"Number of packets received: {self.num_recv_packets}")
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.transtimes[device_id] += data["acc_transtime"]
                 self.proctimes[device_id] += data["acc_proctime"]
