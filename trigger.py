@@ -1,6 +1,6 @@
 import os
 from typing import List
-from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE
+from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE, ARCHITECTURES
 from config import DATA_CONFIG
 from helpers.common import get_nid
 from dotenv import load_dotenv
@@ -9,7 +9,9 @@ from network.EdgeNode import EdgeNode
 from network.CloudServer import CloudServer
 
 
-def start_iot(device_id: str, algo_code: str, data_size: str, iterations: int) -> None:
+def start_iot(
+    device_id: str, algo_code: str, data_size: str, iterations: int, arch: str
+) -> None:
     iot_clients: List[IoTClient] = (
         []
     )  # Initialize the iot_clients list outside the try block
@@ -36,6 +38,7 @@ def start_iot(device_id: str, algo_code: str, data_size: str, iterations: int) -
                 data_dir=algo["data_dir"],
                 algo=algo_code,
                 data_size=data_size,
+                arch=arch,
                 iterations=iterations,
             )
             iot_clients.append(iot_client)
@@ -63,9 +66,9 @@ def start_edge(device_id: str) -> None:
         edge_node.stop()
 
 
-def start_cloud(device_id: str) -> None:
+def start_cloud(device_id: str, arch: str) -> None:
     try:
-        cloud = CloudServer(device_id)
+        cloud = CloudServer(device_id, arch=arch)
         cloud.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
@@ -91,15 +94,17 @@ if __name__ == "__main__":
         id = params[1]
         device_id = get_nid(role, id)
 
+        arch: str = input(f"Set up architecture ({ARCHITECTURES}): ").strip()
+
         if role == "iot":
             algo_code = params[2] if len(params) > 2 else list(DATA_CONFIG.keys())[0]
             data_size = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE
             iterations = int(params[4]) if len(params) > 4 else DEFAULT_ITERATIONS
-            start_iot(device_id, algo_code, data_size, iterations)
+            start_iot(device_id, algo_code, data_size, iterations, arch)
         elif role == "edge":
             start_edge(device_id)
         elif role == "cloud":
-            start_cloud(device_id)
+            start_cloud(device_id, arch)
 
     except Exception as e:
         print("An error occurred:", e)

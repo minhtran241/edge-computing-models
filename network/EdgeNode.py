@@ -2,13 +2,12 @@ import os
 import threading
 import eventlet
 import socketio
-import time
 import queue
 from typing import Any
 from dotenv import load_dotenv
 from helpers.logger import Logger
 from helpers.common import get_device_id
-from config import DATA_CONFIG
+from helpers.abstract import process_data, send_data
 
 load_dotenv()
 
@@ -75,9 +74,8 @@ class EdgeNode:
         recv_data = data["data"]
         algo = data["algo"]
 
-        start_time = time.time()
-        result = DATA_CONFIG[algo]["process"](recv_data)
-        self.proctime += time.time() - start_time
+        result, pt = process_data(recv_data, algo)
+        self.proctime += pt
 
         # Remain attributes the same, just change the data to the result and the device_id of the IoT device
         sent_data = {
@@ -88,12 +86,8 @@ class EdgeNode:
             "iot_device_id": device_id,
         }
 
-        start_time = time.time()
-        self.sio_client.emit(
-            "recv",
-            data=sent_data,
-        )
-        self.transtime += time.time() - start_time
+        tt = send_data(self.sio_client, data)
+        self.transtime += tt
 
         self.sio_client.emit(
             "recv",
@@ -138,11 +132,15 @@ class EdgeNode:
             if "data" in data and data["data"] is not None:
                 # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
                 self.queue.put((device_id, data))
-            elif "acc_transtime" in data and data["acc_transtime"] is not None:
+            elif "transtime" in data and "proctime" in data:
                 self.transtime += data["acc_transtime"]
                 self.logger.info(
                     f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
                 )
+                # self.proctime += data["acc_proctime"]
+                # self.logger.info(
+                #     f"Accumulated processing time from IoT device {device_id}: {data['acc_proctime']}s"
+                # )
 
         try:
             self.running.set()

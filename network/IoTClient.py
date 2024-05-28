@@ -6,6 +6,7 @@ from typing import Any
 from dotenv import load_dotenv
 from constants import DEFAULT_ITERATIONS
 from config import DATA_CONFIG
+from helpers.abstract import process_data, send_data
 from helpers.logger import Logger
 
 load_dotenv()
@@ -19,27 +20,30 @@ class IoTClient(threading.Thread):
     def __init__(
         self,
         device_id: str,
-        edge_address: str,
         data_dir: Any,
         algo: str,
-        data_size: int,
+        size_option: str,
+        target_address: str,
         iterations: int = DEFAULT_ITERATIONS,
+        arch: str = "Edge",
     ):
         """
         Initializes the IoTClient object.
 
         Args:
             device_id (str): The unique identifier of the IoT device.
-            edge_address (str): The address of the edge node.
+            target_address (str): The address of the edge node.
         """
         super().__init__()
         self.device_id = device_id
-        self.edge_address = edge_address
-        self.data_dir = os.path.join(data_dir, data_size)
+        self.target_address = target_address
+        self.data_dir = os.path.join(data_dir, size_option)
         self.algo = algo
+        self.arch = arch
         self.iterations = iterations
         self.sio = socketio.Client(handle_sigint=True, reconnection=True, logger=True)
-        self.transtime = 0  # Transmission time to edge node (accumulated)
+        self.transtime = 0  # Transmission time
+        self.proctime = 0  # Processing time
         self.logger = Logger(self.device_id)
         self.running = threading.Event()  # Event to control the client's running state
         self.running.set()  # Set the event to True initially
@@ -47,42 +51,33 @@ class IoTClient(threading.Thread):
         self.logger.info(
             {
                 "device_id": self.device_id,
-                "edge_address": self.edge_address,
+                "target_address": self.target_address,
                 "data_dir": self.data_dir,
                 "algo": self.algo,
                 "iterations": self.iterations,
+                "arch": self.arch,
             }
         )
 
-    def send(self):
+    def send(self, data_size: int, data: Any):
         """
         Sends data to edge nodes.
         """
-        # Total file size of the data directory
-        data_size = sum(
-            os.path.getsize(os.path.join(self.data_dir, f))
-            for f in os.listdir(self.data_dir)
-        )
-        formatted = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
-
         for _ in range(self.iterations):
-
             sent_data = {
                 "data_size": data_size,
                 "data_dir": self.data_dir,
                 "algo": self.algo,
-                "data": formatted,
+                "data": data,
             }
-
             with self.lock:
-                start_time = time.time()
-                self.sio.emit("recv", data=sent_data)
-                self.transtime += time.time() - start_time
+                tt = send_data(self.sio, sent_data)
+                self.transtime += tt
 
         with self.lock:
             self.sio.emit(
                 "recv",
-                data={"acc_transtime": self.transtime},
+                data={"acc_transtime": self.transtime, "acc_proctime": self.proctime},
             )
 
     def run(self):
@@ -91,13 +86,24 @@ class IoTClient(threading.Thread):
         """
         try:
             self.sio.connect(
-                self.edge_address,
+                self.target_address,
                 headers={"device_id": self.device_id},
                 transports=["websocket"],
             )
-            self.logger.info(f"Connected to edge node ({self.edge_address})")
-            self.send()
-            # Wait, keep the connections with edge nodes alive
+            self.logger.info(f"Connected to edge node ({self.target_address})")
+            data_size = sum(
+                os.path.getsize(os.path.join(self.data_dir, f))
+                for f in os.listdir(self.data_dir)
+            )
+            formatted = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
+
+            if self.arch == "IoT":
+                result, pt = process_data(formatted, self.algo)
+                self.proctime += pt
+                self.send(data_size, result)
+            else:
+                self.send(data_size, formatted)
+
             while self.running.is_set():
                 time.sleep(1)
         except Exception as e:
@@ -116,7 +122,7 @@ class IoTClient(threading.Thread):
         Disconnects from the edge node.
         """
         self.sio.disconnect()
-        self.logger.info(f"Disconnected from edge node ({self.edge_address}).")
+        self.logger.info(f"Disconnected from edge node ({self.target_address}).")
 
     def __del__(self):
         self.stop()

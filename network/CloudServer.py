@@ -4,6 +4,7 @@ import pandas as pd
 from typing import Any
 from dotenv import load_dotenv
 from helpers.common import get_device_id
+from helpers.abstract import process_data
 from helpers.logger import Logger
 from tabulate import tabulate
 
@@ -15,7 +16,7 @@ class CloudServer:
     Cloud server class to receive processed data from edge nodes.
     """
 
-    def __init__(self, device_id: str, port: int = 20000):
+    def __init__(self, device_id: str, port: int = 20000, arch: str = "Edge"):
         """
         Initialize the CloudServer instance.
 
@@ -24,13 +25,16 @@ class CloudServer:
         """
         self.device_id = device_id
         self.port = port
+        self.arch = arch
         self.sio = socketio.Server(always_connect=True)
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
         self.data = {}
         self.transtimes = {}
         self.proctimes = {}
-        self.logger.info({"device_id": self.device_id, "port": self.port})
+        self.logger.info(
+            {"device_id": self.device_id, "port": self.port, "arch": self.arch}
+        )
 
     def process_edge_data(self, device_id: str, data: Any):
         """
@@ -99,8 +103,12 @@ class CloudServer:
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
             if "data" in data and data["data"] is not None:
-                self.process_edge_data(device_id, data)
-                # Print amount of files received from each edge node
+                if self.arch == "Cloud":
+                    result, pt = process_data(data["data"], data["algo"])
+                    self.proctimes[device_id] = pt
+                    self.process_edge_data(device_id, result)
+                else:
+                    self.process_edge_data(device_id, data)
                 self.logger.info(
                     f"Number of files received from edge node {device_id}: {len(self.data[device_id])}"
                 )
