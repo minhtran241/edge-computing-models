@@ -92,8 +92,8 @@ class EdgeNode:
         self.sio_client.emit(
             "recv",
             data={
-                "transtime": self.transtime,
-                "proctime": self.proctime,
+                "acc_transtime": self.transtime,
+                "acc_proctime": self.proctime,
             },
         )
 

@@ -36,22 +36,25 @@ class CloudServer:
             {"device_id": self.device_id, "port": self.port, "arch": self.arch}
         )
 
-    def process_edge_data(self, device_id: str, data: Any):
-        """
-        Receive data from an edge node.
+    # def process_edge_data(self, device_id: str, data: Any):
+    #     """
+    #     Receive data from an edge node.
 
-        Args:
-            device_id (str): The identifier of the edge node.
-            data (Any): The processed data received from the edge node.
-        """
-        self.logger.info(f"Received data from edge node {device_id}: {data}")
-        self.data.setdefault(device_id, [])
-        self.data[device_id].append(data)
+    #     Args:
+    #         device_id (str): The identifier of the edge node.
+    #         data (Any): The processed data received from the edge node.
+    #     """
+    #     self.logger.info(f"Received data from node {device_id}: {data}")
+    #     self.data.setdefault(device_id, [])
+    #     self.data[device_id].append(data)
 
     def print_stats(self):
         """
         Print the statistics for all edge nodes.
         """
+        print(self.data)
+        print(self.transtimes)
+        print(self.proctimes)
         df = pd.DataFrame(
             {
                 "Device ID": list(self.transtimes.keys()),
@@ -96,25 +99,39 @@ class CloudServer:
         def disconnect(sid):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            self.logger.info(f"Edge node {device_id} disconnected")
+            self.logger.info(f"Node {device_id} disconnected")
 
         @self.sio.event
         def recv(sid, data):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
+            device_data = self.data.setdefault(device_id, [])
+            self.transtimes.setdefault(device_id, 0)
+            self.proctimes.setdefault(device_id, 0)
+
             if "data" in data and data["data"] is not None:
+                result = data
                 if self.arch == "Cloud":
                     result, pt = process_data(data["data"], data["algo"])
-                    self.proctimes[device_id] = pt
-                    self.process_edge_data(device_id, result)
-                else:
-                    self.process_edge_data(device_id, data)
+                    result = {
+                        "data_size": data["data_size"],
+                        "data_dir": data["data_dir"],
+                        "algo": data["algo"],
+                        "data": result,
+                        "iot_device_id": device_id,
+                    }
+                    self.proctimes[device_id] += pt
+
+                self.logger.info(f"Received data from node {device_id}: {result}")
+                device_data.append(result)
+
                 self.logger.info(
-                    f"Number of files received from edge node {device_id}: {len(self.data[device_id])}"
+                    f"Number of files received from node {device_id}: {len(device_data)}"
                 )
+
             elif "transtime" in data and "proctime" in data:
-                self.transtimes[device_id] = data["transtime"]
-                self.proctimes[device_id] = data["proctime"]
+                self.transtimes[device_id] += data["acc_transtime"]
+                self.proctimes[device_id] += data["acc_proctime"]
 
         server_thread.wait()
 
