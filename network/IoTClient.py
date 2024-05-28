@@ -12,6 +12,8 @@ from helpers.logger import Logger
 
 load_dotenv()
 
+KEEP_ALIVE_INTERVAL = 30  # seconds
+
 
 class IoTClient(threading.Thread):
     """
@@ -21,7 +23,7 @@ class IoTClient(threading.Thread):
     def __init__(
         self,
         device_id: str,
-        data_dir: Any,
+        data_dir: str,
         algo: str,
         size_option: str,
         target_address: str,
@@ -33,7 +35,7 @@ class IoTClient(threading.Thread):
 
         Args:
             device_id (str): The unique identifier of the IoT device.
-            data_dir (Any): The directory where data is stored.
+            data_dir (str): The directory where data is stored.
             algo (str): The algorithm to use.
             size_option (str): The size option for data.
             target_address (str): The address of the edge node.
@@ -49,12 +51,12 @@ class IoTClient(threading.Thread):
         self.iterations = iterations
         self.arch = arch
         self.sio = socketio.Client(handle_sigint=True, reconnection=True, logger=True)
-        self.transtime = 0
-        self.proctime = 0
+        self.transtime = 0.0
+        self.proctime = 0.0
         self.logger = Logger(self.device_id)
         self.running = threading.Event()
-        self.running.set()
         self.lock = threading.Lock()
+
         self.logger.info(
             {
                 "device_id": self.device_id,
@@ -80,11 +82,7 @@ class IoTClient(threading.Thread):
             "algo": self.algo,
             "data": data,
         }
-        if self.arch == "IoT":
-            with self.lock:
-                tt = send_data(self.sio, sent_data)
-                self.transtime += tt
-        else:
+        with self.lock if self.arch == "IoT" else threading.Lock():
             tt = send_data(self.sio, sent_data)
             self.transtime += tt
 
@@ -92,13 +90,7 @@ class IoTClient(threading.Thread):
         """
         Emit accumulated transmission and processing times to the edge node.
         """
-        if self.arch == "IoT":
-            with self.lock:
-                self.sio.emit(
-                    "recv",
-                    {"acc_transtime": self.transtime, "acc_proctime": self.proctime},
-                )
-        else:
+        with self.lock if self.arch == "IoT" else threading.Lock():
             self.sio.emit(
                 "recv", {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
             )
@@ -114,15 +106,32 @@ class IoTClient(threading.Thread):
         )
         self.logger.info(f"Connected to edge node ({self.target_address})")
 
+    def disconnect_from_edge_node(self):
+        """
+        Disconnect from the edge node.
+        """
+        self.sio.disconnect()
+        self.logger.info(f"Disconnected from edge node ({self.target_address}).")
+
+    def _keep_alive(self):
+        """
+        Periodically send keep-alive messages to the server.
+        """
+        while self.running.is_set():
+            self.sio.emit("keep_alive", {"device_id": self.device_id})
+            time.sleep(KEEP_ALIVE_INTERVAL)
+
     def run(self):
         """
         Run the IoT client.
         """
         try:
             self.connect_to_edge_node()
-
             data_size = cal_data_size(self.data_dir)
             formatted_data = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
+
+            keep_alive_thread = threading.Thread(target=self._keep_alive)
+            keep_alive_thread.start()
 
             for _ in range(self.iterations):
                 if self.arch == "IoT":
@@ -139,6 +148,8 @@ class IoTClient(threading.Thread):
 
         except Exception as e:
             self.logger.error(f"An error occurred: {e}")
+        finally:
+            self.disconnect_from_edge_node()
 
     def stop(self):
         """
@@ -146,14 +157,6 @@ class IoTClient(threading.Thread):
         """
         self.logger.info("Stopping IoT client...")
         self.running.clear()
-        self.disconnect_from_edge_node()
-
-    def disconnect_from_edge_node(self):
-        """
-        Disconnect from the edge node.
-        """
-        self.sio.disconnect()
-        self.logger.info(f"Disconnected from edge node ({self.target_address}).")
 
     def __del__(self):
         self.stop()
