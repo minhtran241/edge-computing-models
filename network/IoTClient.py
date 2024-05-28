@@ -80,7 +80,11 @@ class IoTClient(threading.Thread):
             "algo": self.algo,
             "data": data,
         }
-        with self.lock:
+        if self.arch == "IoT":
+            with self.lock:
+                tt = send_data(self.sio, sent_data)
+                self.transtime += tt
+        else:
             tt = send_data(self.sio, sent_data)
             self.transtime += tt
 
@@ -88,7 +92,13 @@ class IoTClient(threading.Thread):
         """
         Emit accumulated transmission and processing times to the edge node.
         """
-        with self.lock:
+        if self.arch == "IoT":
+            with self.lock:
+                self.sio.emit(
+                    "recv",
+                    {"acc_transtime": self.transtime, "acc_proctime": self.proctime},
+                )
+        else:
             self.sio.emit(
                 "recv", {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
             )

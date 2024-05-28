@@ -121,13 +121,15 @@ class CloudServer:
             self.proctimes.setdefault(device_id, 0)
 
             if "data" in data and data["data"] is not None:
-                self.logger.info(
-                    f"Received {'data' if self.arch == 'Cloud' else 'result'} from node {device_id}"
-                )
                 if self.arch == "Cloud":
+                    self.logger.info(f"Received data from node {device_id}")
                     self.queue.put((device_id, data))
                 else:
+                    self.logger.info(f"Result from node {device_id}: {data}")
                     self.data[device_id].append(data)
+                self.logger.info(
+                    f"Files received from node {device_id}: {len(self.data[device_id])}"
+                )
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.transtimes[device_id] += data["acc_transtime"]
                 self.proctimes[device_id] += data["acc_proctime"]
