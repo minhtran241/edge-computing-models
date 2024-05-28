@@ -86,7 +86,7 @@ class EdgeNode:
             "iot_device_id": device_id,
         }
 
-        tt = send_data(self.sio_client, data)
+        tt = send_data(self.sio_client, sent_data)
         self.transtime += tt
 
         self.sio_client.emit(

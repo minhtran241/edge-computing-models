@@ -112,3 +112,13 @@ def fimg_from_dir(dir: str, out_format: str = "bytes") -> Any:
         raise ValueError(
             f"Invalid output format: {out_format}. Valid formats are: 'bytes', 'path'"
         )
+
+
+def cal_data_size(dir: str) -> int:
+    """
+    Calculate the total size of data in the data directory.
+
+    Returns:
+        int: Total size of data.
+    """
+    return sum(os.path.getsize(os.path.join(dir, f)) for f in os.listdir(dir))
