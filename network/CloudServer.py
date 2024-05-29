@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from tabulate import tabulate
 from helpers.common import get_device_id, process_data
 from helpers.logger import Logger
-from helpers.models import ModelArch
+from helpers.models import ModelArch, Algorithm
 
 load_dotenv()
 
@@ -25,7 +25,7 @@ class CloudServer:
     :type arch: Any, optional
     """
 
-    def __init__(self, device_id: str, port: int = 20000, arch: Any = ModelArch.EDGE):
+    def __init__(self, device_id: str, arch: ModelArch, port: int = 20000):
         self.device_id = device_id
         self.port = port
         self.arch = arch
@@ -39,7 +39,7 @@ class CloudServer:
         self.transtimes = {}
         self.proctimes = {}
         self.logger.info(
-            {"device_id": self.device_id, "port": self.port, "arch": self.arch}
+            {"device_id": self.device_id, "port": self.port, "arch": self.arch.name}
         )
 
     def process_recv_data(self):
@@ -49,9 +49,9 @@ class CloudServer:
         while True:
             try:
                 device_id, data = self.queue.get(timeout=1)
-                algo = data["algo"]
+                algo = Algorithm[data["algo"]]
                 recv_data = data["data"]
-                result, pt = process_data(func=algo["process"], data=recv_data)
+                result, pt = process_data(func=algo.value["process"], data=recv_data)
                 self.queue.task_done()
                 self.num_proc_packets += 1
                 self.logger.info(
@@ -64,7 +64,7 @@ class CloudServer:
                             "arch": data["arch"],
                             "data_size": data["data_size"],
                             "data_dir": data["data_dir"],
-                            "algo": algo["name"],
+                            "algo": data["algo"],
                             "data": result,
                             "iot_device_id": device_id,
                         }

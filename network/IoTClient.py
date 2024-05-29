@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from constants import DEFAULT_ITERATIONS
 from helpers.common import cal_data_size, process_data, emit_data
 from helpers.logger import Logger
-from helpers.models import ModelArch
+from helpers.models import ModelArch, Algorithm
 
 load_dotenv()
 
@@ -21,15 +21,15 @@ class IoTClient(threading.Thread):
     :param data_dir: The directory containing the data to be sent.
     :type data_dir: Any
     :param algo: The algorithm to be used for processing the data.
-    :type algo: Any, optional
+    :type algo: Algorithm, optional
     :param size_option: The size option of the data.
     :type size_option: str
     :param target_address: The address of the target node.
     :type target_address: str
+    :param arch: The architecture type, either IoT, 'Edge' or 'Cloud'.
+    :type arch: ModelArch
     :param iterations: The number of iterations to run, defaults to DEFAULT_ITERATIONS.
     :type iterations: int, optional
-    :param arch: The architecture type, either IoT, 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
-    :type arch: Any, optional
     """
 
     def __init__(
@@ -38,9 +38,9 @@ class IoTClient(threading.Thread):
         data_dir: Any,
         size_option: str,
         target_address: str,
-        algo: Any,
+        algo: Algorithm,
+        arch: ModelArch,
         iterations: int = DEFAULT_ITERATIONS,
-        arch: Any = ModelArch.EDGE,
     ):
         super().__init__()
         self.device_id = device_id
@@ -62,9 +62,9 @@ class IoTClient(threading.Thread):
                 "device_id": self.device_id,
                 "target_address": self.target_address,
                 "data_dir": self.data_dir,
-                "algo": self.algo["name"],
+                "algo": self.algo.name,
                 "iterations": self.iterations,
-                "arch": self.arch,
+                "arch": self.arch.name,
             }
         )
 
@@ -77,10 +77,10 @@ class IoTClient(threading.Thread):
             data (Any): Data to be sent.
         """
         sent_data = {
-            "arch": self.arch,
+            "arch": self.arch.name,
             "data_size": data_size,
             "data_dir": self.data_dir,
-            "algo": self.algo,
+            "algo": self.algo.name,
             "data": data,
         }
         if self.arch == ModelArch.IOT:
@@ -125,12 +125,12 @@ class IoTClient(threading.Thread):
             self.connect_to_target()
 
             data_size = cal_data_size(self.data_dir)
-            formatted_data = self.algo["preprocess"](self.data_dir)
+            formatted_data = self.algo.value["preprocess"](self.data_dir)
 
             for _ in range(self.iterations):
                 if self.arch == ModelArch.IOT:
                     result, pt = process_data(
-                        func=self.algo["process"], data=formatted_data
+                        func=self.algo.value["process"], data=formatted_data
                     )
                     self.proctime += pt
                     self._format_and_send(data_size, result)

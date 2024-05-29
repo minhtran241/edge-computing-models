@@ -72,9 +72,9 @@ class EdgeNode:
         """
         # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
         recv_data = data["data"]
-        algo = data["algo"]
+        algo = Algorithm[data["algo"]]
 
-        result, pt = process_data(func=algo["process"], data=recv_data)
+        result, pt = process_data(func=algo.value["process"], data=recv_data)
         self.proctime += pt
 
         # Remain attributes the same, just change the data to the result and the device_id of the IoT device
@@ -82,7 +82,7 @@ class EdgeNode:
             "arch": data["arch"],
             "data_size": data["data_size"],
             "data_dir": data["data_dir"],
-            "algo": algo,
+            "algo": data["algo"],
             "data": result,
             "iot_device_id": device_id,
         }
