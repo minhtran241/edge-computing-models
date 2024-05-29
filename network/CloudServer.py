@@ -137,6 +137,13 @@ class CloudServer:
                 self.num_recv_packets += 1
                 self.logger.info(f"Number of packets received: {self.num_recv_packets}")
             elif "acc_transtime" in data and "acc_proctime" in data:
+                self.logger.info(
+                    {
+                        "device_id": device_id,
+                        "acc_transtime": data["acc_transtime"],
+                        "acc_proctime": data["acc_proctime"],
+                    }
+                )
                 self.transtimes[device_id] += data["acc_transtime"]
                 self.proctimes[device_id] += data["acc_proctime"]
 
