@@ -1,5 +1,7 @@
 import os
-from typing import Any, Union, List
+import time
+import socketio
+from typing import Any, Union, List, Tuple
 from constants import VALID_ROLES
 
 
@@ -122,3 +124,43 @@ def cal_data_size(dir: str) -> int:
         int: Total size of data.
     """
     return sum(os.path.getsize(os.path.join(dir, f)) for f in os.listdir(dir))
+
+
+def process_data(func: Any, data: Any) -> Tuple[Any, float]:
+    """
+    Process the data using the specified function.
+
+    Args:
+        func (Any): The function to process the data.
+        data (Any): The data to process.
+
+    Returns:
+        Tuple[Any, float]: The processed data and the processing time.
+    """
+    try:
+        start_time = time.time()
+        result = func(data)
+        proctime = time.time() - start_time
+        return result, proctime
+    except Exception as e:
+        raise e
+
+
+def emit_data(sio_client: socketio.Client, data: Any) -> float:
+    """
+    Emit the data to the server using the specified socketio client.
+
+    Args:
+        sio_client (socketio.Client): The socketio client.
+        data (Any): The data to emit.
+
+    Returns:
+        float: The transmission time.
+    """
+    try:
+        start_time = time.time()
+        sio_client.emit("recv", data=data)
+        transtime = time.time() - start_time
+        return transtime
+    except Exception as e:
+        raise e

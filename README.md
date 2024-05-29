@@ -38,14 +38,14 @@ This model is based on the idea of having multiple edge servers that are connect
 Create a `.env` file in the root directory and follow the template created in the [`.env.example`](https://github.com/minhtran241/edge-computing-models/blob/main/.env.example) file.
 
 ```bash
-CLOUD_ADDRESS=
-NUM_EDGE_NODES=
-EDGE_1_ADDRESS=
+EDGE_TARGET=
+NUM_IOT_TARGETS=
+IOT_TARGET_1=
 EDGE_2_ADDRESS=
 EDGE_3_ADDRESS=
 ```
 
-> Note: The `NUM_EDGE_NODES` variable is used to specify the number of edge servers in the network. The `EDGE_1_ADDRESS`, `EDGE_2_ADDRESS`, and `EDGE_3_ADDRESS` variables are used to specify the IP addresses of the edge servers. If you have more than three edge servers, you can add more variables following the same pattern.
+> Note: The `NUM_IOT_TARGETS` variable is used to specify the number of edge servers in the network. The `IOT_TARGET_1`, `EDGE_2_ADDRESS`, and `EDGE_3_ADDRESS` variables are used to specify the IP addresses of the edge servers. If you have more than three edge servers, you can add more variables following the same pattern.
 
 ### Run the code
 

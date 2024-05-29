@@ -3,30 +3,30 @@ import socketio
 import queue
 import threading
 import pandas as pd
-from typing import Any
 from dotenv import load_dotenv
-from helpers.common import get_device_id
-from helpers.abstract import process_data
-from helpers.logger import Logger
 from tabulate import tabulate
+from helpers.common import get_device_id, process_data
+from helpers.logger import Logger
+from helpers.models import ModelArch, Algorithm
 
 load_dotenv()
 
 
 class CloudServer:
     """
-    Cloud server class to receive processed data from edge nodes.
+    Cloud server class to receive processed data from client nodes.
+
+    :param device_id: The unique identifier of the cloud server.
+    :type device_id: str
+    :param port: The port on which the cloud server will run, defaults to 20000.
+    :type port: int, optional
+    :param arch: The architecture type, either 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
+    :type arch: ModelArch, optional
     """
 
-    def __init__(self, device_id: str, port: int = 20000, arch: str = "Edge"):
-        """
-        Initialize the CloudServer instance.
-
-        Args:
-            device_id (str): The unique identifier for the device.
-            port (int, optional): The port on which the cloud server will run. Defaults to 20000.
-            arch (str, optional): The architecture type, either 'Edge' or 'Cloud'. Defaults to 'Edge'.
-        """
+    def __init__(
+        self, device_id: str, port: int = 20000, arch: ModelArch = ModelArch.EDGE
+    ):
         self.device_id = device_id
         self.port = port
         self.arch = arch
@@ -40,7 +40,7 @@ class CloudServer:
         self.transtimes = {}
         self.proctimes = {}
         self.logger.info(
-            {"device_id": self.device_id, "port": self.port, "arch": self.arch}
+            {"device_id": self.device_id, "port": self.port, "arch": self.arch.name}
         )
 
     def process_recv_data(self):
@@ -50,19 +50,22 @@ class CloudServer:
         while True:
             try:
                 device_id, data = self.queue.get(timeout=1)
-                result, pt = process_data(data["data"], data["algo"])
+                algo: Algorithm = Algorithm[data["algo"].upper()]
+                recv_data = data["data"]
+                result, pt = process_data(func=algo["process"], data=recv_data)
                 self.queue.task_done()
                 self.num_proc_packets += 1
                 self.logger.info(
-                    f"Number of packets processed: {self.num_proc_packets}. Processed data from node {device_id}: {result}"
+                    f"Processed data from node {device_id}: {result}. Total number of packets processed: {self.num_proc_packets}."
                 )
                 with threading.Lock():
                     self.proctimes[device_id] += pt
                     self.data.setdefault(device_id, []).append(
                         {
+                            "arch": data["arch"],
                             "data_size": data["data_size"],
                             "data_dir": data["data_dir"],
-                            "algo": data["algo"],
+                            "algo": algo,
                             "data": result,
                             "iot_device_id": device_id,
                         }
@@ -72,10 +75,13 @@ class CloudServer:
 
     def print_stats(self):
         """
-        Print the statistics for all edge nodes.
+        Print the statistics for all client nodes.
         """
         df = pd.DataFrame(
             {
+                "Arch": [
+                    d["arch"] for device_id in self.data for d in self.data[device_id]
+                ],
                 "Device ID": list(self.transtimes.keys()),
                 "Files Received": [
                     len(self.data.get(device_id, [])) for device_id in self.data
@@ -109,13 +115,13 @@ class CloudServer:
         def connect(sid, environ):
             device_id = get_device_id(environ) or sid
             self.sio.save_session(sid, {"device_id": device_id})
-            self.logger.info(f"Edge node {device_id} connected, session ID: {sid}")
+            self.logger.info(f"Client node {device_id} connected, session ID: {sid}")
 
         @self.sio.event
         def disconnect(sid):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
-            self.logger.info(f"Node {device_id} disconnected")
+            self.logger.info(f"Client node {device_id} disconnected")
 
         @self.sio.event
         def recv(sid, data):
@@ -126,11 +132,11 @@ class CloudServer:
             self.proctimes.setdefault(device_id, 0)
 
             if "data" in data and data["data"] is not None:
-                if self.arch == "Cloud":
-                    self.logger.info(f"Received data from node {device_id}")
+                if self.arch == ModelArch.CLOUD:
+                    self.logger.info(f"Received data from client node {device_id}")
                     self.queue.put((device_id, data))
                 else:
-                    self.logger.info(f"Result from node {device_id}: {data}")
+                    self.logger.info(f"Result from client node {device_id}: {data}")
                     self.data[device_id].append(data)
                 self.num_recv_packets += 1
                 self.logger.info(f"Number of packets received: {self.num_recv_packets}")
@@ -138,7 +144,7 @@ class CloudServer:
                 self.transtimes[device_id] += data["acc_transtime"]
                 self.proctimes[device_id] += data["acc_proctime"]
 
-        if self.arch == "Cloud":
+        if self.arch == ModelArch.CLOUD:
             threading.Thread(target=self.process_recv_data, daemon=True).start()
 
         server_thread.wait()

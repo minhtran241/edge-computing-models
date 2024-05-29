@@ -6,5 +6,3 @@ VALID_ROLES: List[str] = ["iot", "edge", "cloud"]
 DEFAULT_ITERATIONS: int = 100
 YOLO_MODEL: YOLO = YOLO(model=os.getenv("YOLOV8_MODEL_PATH") or "yolov8m.pt")
 DEFAULT_DATA_SIZE_OPTION: str = "small"
-
-ARCHITECTURES: List[str] = ["Edge", "IoT", "Cloud"]

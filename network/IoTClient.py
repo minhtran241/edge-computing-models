@@ -5,41 +5,43 @@ import threading
 from typing import Any
 from dotenv import load_dotenv
 from constants import DEFAULT_ITERATIONS
-from config import DATA_CONFIG
-from helpers.abstract import process_data, send_data
-from helpers.common import cal_data_size
+from helpers.common import cal_data_size, process_data, emit_data
 from helpers.logger import Logger
+from helpers.models import ModelArch, Algorithm
 
 load_dotenv()
 
 
 class IoTClient(threading.Thread):
     """
-    IoT client class to send data to edge nodes.
+    IoT client class to send data to the targeted server nodes.
+
+    :param device_id: The unique identifier of the IoT client.
+    :type device_id: str
+    :param data_dir: The directory containing the data to be sent.
+    :type data_dir: Any
+    :param algo: The algorithm to be used for processing the data.
+    :type algo: Algorithm, optional
+    :param size_option: The size option of the data.
+    :type size_option: str
+    :param target_address: The address of the target node.
+    :type target_address: str
+    :param iterations: The number of iterations to run, defaults to DEFAULT_ITERATIONS.
+    :type iterations: int, optional
+    :param arch: The architecture type, either IoT, 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
+    :type arch: ModelArch, optional
     """
 
     def __init__(
         self,
         device_id: str,
         data_dir: Any,
-        algo: str,
         size_option: str,
         target_address: str,
+        algo: Algorithm = Algorithm.SW,
         iterations: int = DEFAULT_ITERATIONS,
-        arch: str = "Edge",
+        arch: ModelArch = ModelArch.EDGE,
     ):
-        """
-        Initializes the IoTClient object.
-
-        Args:
-            device_id (str): The unique identifier of the IoT device.
-            data_dir (Any): The directory where data is stored.
-            algo (str): The algorithm to use.
-            size_option (str): The size option for data.
-            target_address (str): The address of the edge node.
-            iterations (int, optional): The number of iterations. Defaults to DEFAULT_ITERATIONS.
-            arch (str, optional): The architecture type, either 'IoT' or 'Edge'. Defaults to 'Edge'.
-        """
         super().__init__()
         self.device_id = device_id
         self.data_dir = os.path.join(data_dir, size_option)
@@ -60,39 +62,40 @@ class IoTClient(threading.Thread):
                 "device_id": self.device_id,
                 "target_address": self.target_address,
                 "data_dir": self.data_dir,
-                "algo": self.algo,
+                "algo": self.algo["name"],
                 "iterations": self.iterations,
-                "arch": self.arch,
+                "arch": self.arch.name,
             }
         )
 
     def _format_and_send(self, data_size: int, data: Any):
         """
-        Send data to the edge node.
+        Send data to the target node.
 
         Args:
             data_size (int): Size of the data being sent.
             data (Any): Data to be sent.
         """
         sent_data = {
+            "arch": self.arch,
             "data_size": data_size,
             "data_dir": self.data_dir,
-            "algo": self.algo,
+            "algo": self.algo["name"],
             "data": data,
         }
-        if self.arch == "IoT":
+        if self.arch == ModelArch.IOT:
             with self.lock:
-                tt = send_data(self.sio, sent_data)
+                tt = emit_data(self.sio, sent_data)
                 self.transtime += tt
         else:
-            tt = send_data(self.sio, sent_data)
+            tt = emit_data(self.sio, sent_data)
             self.transtime += tt
 
     def _emit_statistics(self):
         """
-        Emit accumulated transmission and processing times to the edge node.
+        Emit accumulated transmission and processing times to the target node.
         """
-        if self.arch == "IoT":
+        if self.arch == ModelArch.IOT:
             with self.lock:
                 self.sio.emit(
                     "recv",
@@ -103,30 +106,32 @@ class IoTClient(threading.Thread):
                 "recv", {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
             )
 
-    def connect_to_edge_node(self):
+    def connect_to_target(self):
         """
-        Connect to the edge node.
+        Connect to the target node.
         """
         self.sio.connect(
             self.target_address,
             headers={"device_id": self.device_id},
             transports=["websocket"],
         )
-        self.logger.info(f"Connected to edge node ({self.target_address})")
+        self.logger.info(f"Connected to target node ({self.target_address})")
 
     def run(self):
         """
         Run the IoT client.
         """
         try:
-            self.connect_to_edge_node()
+            self.connect_to_target()
 
             data_size = cal_data_size(self.data_dir)
-            formatted_data = DATA_CONFIG[self.algo]["preprocess"](self.data_dir)
+            formatted_data = self.algo["preprocess"](self.data_dir)
 
             for _ in range(self.iterations):
-                if self.arch == "IoT":
-                    result, pt = process_data(formatted_data, self.algo)
+                if self.arch == ModelArch.IOT:
+                    result, pt = process_data(
+                        func=self.algo["process"], data=formatted_data
+                    )
                     self.proctime += pt
                     self._format_and_send(data_size, result)
                 else:
@@ -146,14 +151,14 @@ class IoTClient(threading.Thread):
         """
         self.logger.info("Stopping IoT client...")
         self.running.clear()
-        self.disconnect_from_edge_node()
+        self.disconnect_from_target()
 
-    def disconnect_from_edge_node(self):
+    def disconnect_from_target(self):
         """
-        Disconnect from the edge node.
+        Disconnect from the target node.
         """
         self.sio.disconnect()
-        self.logger.info(f"Disconnected from edge node ({self.target_address}).")
+        self.logger.info(f"Disconnected from target node ({self.target_address}).")
 
     def __del__(self):
         self.stop()

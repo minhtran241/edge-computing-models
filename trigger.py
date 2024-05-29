@@ -1,8 +1,8 @@
 import os
 from typing import List
-from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION, ARCHITECTURES
-from config import DATA_CONFIG
+from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION
 from helpers.common import get_nid
+from helpers.models import Algorithm, ModelArch
 from dotenv import load_dotenv
 from network.IoTClient import IoTClient
 from network.EdgeNode import EdgeNode
@@ -10,25 +10,24 @@ from network.CloudServer import CloudServer
 
 
 def start_iot(
-    device_id: str, algo_code: str, size_option: str, iterations: int, arch: str
+    device_id: str, algo_code: str, size_option: str, iterations: int, arch_name: str
 ) -> None:
     iot_clients: List[IoTClient] = (
         []
     )  # Initialize the iot_clients list outside the try block
     try:
-        if algo_code not in DATA_CONFIG:
-            raise ValueError(f"Invalid algorithm code: {algo_code}")
-        if size_option not in DATA_CONFIG[algo_code]["available_sizes"]:
+        algo: Algorithm = Algorithm[algo_code.upper()]
+        # Check if the algorithm and size option are supported
+        if size_option not in algo["avail_sizes"]:
             raise ValueError(
-                f"Invalid data size: {size_option}, available sizes for {algo_code}: {DATA_CONFIG[algo_code]['available_sizes']}"
+                f"Invalid data size option: {size_option}. Supported options: {algo['avail_sizes']}"
             )
-
-        algo = DATA_CONFIG.get(algo_code)
+        arch: ModelArch = ModelArch[arch_name.upper()]
 
         # Get edge node addresses
-        NUM_EDGE_NODES = int(os.getenv("NUM_EDGE_NODES"))
+        NUM_TARGET_NODES = int(os.getenv("NUM_IOT_TARGETS"))
         TARGET_NODE_ADDRESSES = [
-            os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_EDGE_NODES)
+            os.getenv(f"EDGE_{i+1}_ADDRESS") for i in range(NUM_TARGET_NODES)
         ]
 
         for i, ta in enumerate(TARGET_NODE_ADDRESSES):
@@ -36,10 +35,10 @@ def start_iot(
                 device_id=f"{device_id}-t{i+1}",
                 target_address=ta,
                 data_dir=algo["data_dir"],
-                algo=algo_code,
                 size_option=size_option,
-                arch=arch,
+                algo=algo,
                 iterations=iterations,
+                arch=arch,
             )
             iot_clients.append(iot_client)
             iot_client.start()
@@ -66,14 +65,16 @@ def start_edge(device_id: str) -> None:
         edge_node.stop()
 
 
-def start_cloud(device_id: str, arch: str) -> None:
+def start_cloud(device_id: str, arch_name: str) -> None:
     try:
+        arch: ModelArch = ModelArch[arch_name.upper()]
         cloud = CloudServer(device_id, arch=arch)
         cloud.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
             cloud.logger.error(f"An error occurred: {e}")
-        cloud.print_stats()
+        if len(cloud.data) > 0:
+            cloud.print_stats()
         cloud.stop()
 
 
@@ -94,10 +95,12 @@ if __name__ == "__main__":
         id = params[1]
         device_id = get_nid(role, id)
 
-        arch: str = input(f"Set up architecture ({ARCHITECTURES}): ").strip()
+        arch_name: str = input(
+            f"Set up model architecture {ModelArch._member_names_}: "
+        )
 
         if role == "iot":
-            algo_code = params[2] if len(params) > 2 else list(DATA_CONFIG.keys())[0]
+            algo_code = params[2] if len(params) > 2 else None
             size_option = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE_OPTION
             iterations = int(params[4]) if len(params) > 4 else DEFAULT_ITERATIONS
             start_iot(
@@ -105,12 +108,12 @@ if __name__ == "__main__":
                 algo_code=algo_code,
                 size_option=size_option,
                 iterations=iterations,
-                arch=arch,
+                arch_name=arch_name,
             )
         elif role == "edge":
             start_edge(device_id)
         elif role == "cloud":
-            start_cloud(device_id, arch)
+            start_cloud(device_id, arch_name)
 
     except Exception as e:
         print("An error occurred:", e)
