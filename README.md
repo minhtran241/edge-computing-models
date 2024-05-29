@@ -107,7 +107,7 @@ This will require your input to specify the following parameters:
 - The algorithm code [See the list of available algorithms](#available-algorithms)
 - The size of the data
 - Number of iterations
-- The model architecture [See the enum `ModelArch` in the `enums.py` file](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py)
+- The model architecture [See the enum `ModelArch` in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file]
 
 #### Input format
 
