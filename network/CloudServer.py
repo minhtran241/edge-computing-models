@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from tabulate import tabulate
 from helpers.common import get_device_id, process_data
 from helpers.logger import Logger
-from helpers.models import ModelArch, Algorithm
+from models.enums import ModelArch, Algorithm
 
 load_dotenv()
 

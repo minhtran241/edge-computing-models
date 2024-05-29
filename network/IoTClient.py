@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from constants import DEFAULT_ITERATIONS
 from helpers.common import cal_data_size, process_data, emit_data
 from helpers.logger import Logger
-from helpers.models import ModelArch, Algorithm
+from models.enums import ModelArch, Algorithm
 
 load_dotenv()
 

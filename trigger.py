@@ -2,7 +2,7 @@ import os
 from typing import List
 from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION
 from helpers.common import get_nid, safe_int
-from helpers.models import Algorithm, ModelArch
+from models.enums import Algorithm, ModelArch
 from dotenv import load_dotenv
 from network.IoTClient import IoTClient
 from network.EdgeNode import EdgeNode
