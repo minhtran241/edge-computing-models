@@ -16,13 +16,13 @@ def start_iot(
         []
     )  # Initialize the iot_clients list outside the try block
     try:
-        algo: Algorithm = Algorithm[algo_code.upper()].value
+        algo: Algorithm = Algorithm[algo_code].value
         # Check if the algorithm and size option are supported
         if size_option not in algo["avail_sizes"]:
             raise ValueError(
                 f"Invalid data size option: {size_option}. Supported options: {algo['avail_sizes']}"
             )
-        arch: ModelArch = ModelArch[arch_name.upper()].value
+        arch: ModelArch = ModelArch[arch_name].value
 
         # Get edge node addresses
         NUM_TARGET_NODES = int(os.getenv("NUM_IOT_TARGETS"))
@@ -67,7 +67,7 @@ def start_edge(device_id: str) -> None:
 
 def start_cloud(device_id: str, arch_name: str) -> None:
     try:
-        arch: ModelArch = ModelArch[arch_name.upper()].value
+        arch: ModelArch = ModelArch[arch_name].value
         cloud = CloudServer(device_id, arch=arch)
         cloud.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
@@ -97,10 +97,10 @@ if __name__ == "__main__":
 
         arch_name: str = input(
             f"Set up model architecture {ModelArch._member_names_}: "
-        )
+        ).upper()
 
         if role == "iot":
-            algo_code = params[2] if len(params) > 2 else "sw"
+            algo_code = params[2].upper() if len(params) > 2 else "SW"
             size_option = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE_OPTION
             iterations = (
                 safe_int(params[4], DEFAULT_ITERATIONS)

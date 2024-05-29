@@ -80,7 +80,7 @@ class IoTClient(threading.Thread):
             "arch": self.arch,
             "data_size": data_size,
             "data_dir": self.data_dir,
-            "algo": self.algo["name"],
+            "algo": self.algo,
             "data": data,
         }
         if self.arch == ModelArch.IOT:

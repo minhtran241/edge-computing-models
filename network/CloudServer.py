@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from tabulate import tabulate
 from helpers.common import get_device_id, process_data
 from helpers.logger import Logger
-from helpers.models import ModelArch, Algorithm
+from helpers.models import ModelArch
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ class CloudServer:
         while True:
             try:
                 device_id, data = self.queue.get(timeout=1)
-                algo: Algorithm = Algorithm[data["algo"].upper()]
+                algo = data["algo"]
                 recv_data = data["data"]
                 result, pt = process_data(func=algo["process"], data=recv_data)
                 self.queue.task_done()
@@ -64,7 +64,7 @@ class CloudServer:
                             "arch": data["arch"],
                             "data_size": data["data_size"],
                             "data_dir": data["data_dir"],
-                            "algo": algo,
+                            "algo": algo["name"],
                             "data": result,
                             "iot_device_id": device_id,
                         }
@@ -78,9 +78,6 @@ class CloudServer:
         """
         df = pd.DataFrame(
             {
-                "Arch": [
-                    d["arch"] for device_id in self.data for d in self.data[device_id]
-                ],
                 "Device ID": list(self.transtimes.keys()),
                 "Files Received": [
                     len(self.data.get(device_id, [])) for device_id in self.data
