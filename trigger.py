@@ -1,7 +1,7 @@
 import os
 from typing import List
 from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION
-from helpers.common import get_nid
+from helpers.common import get_nid, safe_int
 from helpers.models import Algorithm, ModelArch
 from dotenv import load_dotenv
 from network.IoTClient import IoTClient
@@ -102,7 +102,12 @@ if __name__ == "__main__":
         if role == "iot":
             algo_code = params[2] if len(params) > 2 else "sw"
             size_option = params[3] if len(params) > 3 else DEFAULT_DATA_SIZE_OPTION
-            iterations = int(params[4]) if len(params) > 4 else DEFAULT_ITERATIONS
+            iterations = (
+                safe_int(params[4], DEFAULT_ITERATIONS)
+                if len(params) > 4
+                else DEFAULT_ITERATIONS
+            )
+
             start_iot(
                 device_id=device_id,
                 algo_code=algo_code,
@@ -114,6 +119,8 @@ if __name__ == "__main__":
             start_edge(device_id)
         elif role == "cloud":
             start_cloud(device_id, arch_name)
+        else:
+            print(f"Unknown role: {role}")
 
     except Exception as e:
         print("An error occurred:", e)

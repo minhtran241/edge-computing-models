@@ -5,6 +5,13 @@ from typing import Any, Union, List, Tuple
 from constants import VALID_ROLES
 
 
+def safe_int(value, default):
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
+
 def get_nid(role: str, id: int = 0) -> str:
     """
     Get the network ID based on the role and ID (i0 for IoT, e0 for edge, c0 for cloud)
