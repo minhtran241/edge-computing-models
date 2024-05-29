@@ -3,6 +3,7 @@ import socketio
 import queue
 import threading
 import pandas as pd
+from typing import Any
 from dotenv import load_dotenv
 from tabulate import tabulate
 from helpers.common import get_device_id, process_data
@@ -21,12 +22,10 @@ class CloudServer:
     :param port: The port on which the cloud server will run, defaults to 20000.
     :type port: int, optional
     :param arch: The architecture type, either 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
-    :type arch: ModelArch, optional
+    :type arch: Any, optional
     """
 
-    def __init__(
-        self, device_id: str, port: int = 20000, arch: ModelArch = ModelArch.EDGE
-    ):
+    def __init__(self, device_id: str, port: int = 20000, arch: Any = ModelArch.EDGE):
         self.device_id = device_id
         self.port = port
         self.arch = arch
@@ -40,7 +39,7 @@ class CloudServer:
         self.transtimes = {}
         self.proctimes = {}
         self.logger.info(
-            {"device_id": self.device_id, "port": self.port, "arch": self.arch.name}
+            {"device_id": self.device_id, "port": self.port, "arch": self.arch}
         )
 
     def process_recv_data(self):

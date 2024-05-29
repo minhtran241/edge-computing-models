@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from constants import DEFAULT_ITERATIONS
 from helpers.common import cal_data_size, process_data, emit_data
 from helpers.logger import Logger
-from helpers.models import ModelArch, Algorithm
+from helpers.models import ModelArch
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ class IoTClient(threading.Thread):
     :param data_dir: The directory containing the data to be sent.
     :type data_dir: Any
     :param algo: The algorithm to be used for processing the data.
-    :type algo: Algorithm, optional
+    :type algo: Any, optional
     :param size_option: The size option of the data.
     :type size_option: str
     :param target_address: The address of the target node.
@@ -29,7 +29,7 @@ class IoTClient(threading.Thread):
     :param iterations: The number of iterations to run, defaults to DEFAULT_ITERATIONS.
     :type iterations: int, optional
     :param arch: The architecture type, either IoT, 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
-    :type arch: ModelArch, optional
+    :type arch: Any, optional
     """
 
     def __init__(
@@ -38,9 +38,9 @@ class IoTClient(threading.Thread):
         data_dir: Any,
         size_option: str,
         target_address: str,
-        algo: Algorithm = Algorithm.SW,
+        algo: Any,
         iterations: int = DEFAULT_ITERATIONS,
-        arch: ModelArch = ModelArch.EDGE,
+        arch: Any = ModelArch.EDGE,
     ):
         super().__init__()
         self.device_id = device_id
@@ -64,7 +64,7 @@ class IoTClient(threading.Thread):
                 "data_dir": self.data_dir,
                 "algo": self.algo["name"],
                 "iterations": self.iterations,
-                "arch": self.arch.name,
+                "arch": self.arch,
             }
         )
 
