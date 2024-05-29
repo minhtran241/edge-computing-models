@@ -41,6 +41,8 @@ class EdgeNode:
         self.queue = queue.Queue()
         self.transtime = 0
         self.proctime = 0
+        self.iters = 0
+        self.num_proc_packets = 0
         self.running = threading.Event()
         self.logger.info(
             {
@@ -59,8 +61,19 @@ class EdgeNode:
                 device_id, data = self.queue.get(timeout=1)
                 self._process_iot_data(device_id, data)
                 self.queue.task_done()
+                self.num_proc_packets += 1
+                if self.num_proc_packets == self.iters:
+                    self._emit_timestats()
             except queue.Empty:
                 pass
+
+    def _emit_timestats(self):
+        time_stats = {
+            "acc_transtime": self.transtime,
+            "acc_proctime": self.proctime,
+        }
+        self.logger.info(time_stats)
+        self.sio_client.emit("recv", data=time_stats)
 
     def _process_iot_data(self, device_id: str, data: Any):
         """
@@ -89,13 +102,6 @@ class EdgeNode:
 
         tt = emit_data(self.sio_client, sent_data)
         self.transtime += tt
-
-        time_stats = {
-            "acc_transtime": self.transtime,
-            "acc_proctime": self.proctime,
-        }
-        self.logger.info(time_stats)
-        self.sio_client.emit("recv", data=time_stats)
 
     def run_server(self):
         """
@@ -131,6 +137,8 @@ class EdgeNode:
             # device_id = "iot-1"
             if "data" in data and data["data"] is not None:
                 # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
+                if self.iters == 0:
+                    self.iters = data["iters"]
                 self.queue.put((device_id, data))
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.transtime += data["acc_transtime"]

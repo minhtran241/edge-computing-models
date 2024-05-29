@@ -81,6 +81,7 @@ class IoTClient(threading.Thread):
             "data_dir": self.data_dir,
             "algo": self.algo.name,
             "data": data,
+            "iters": self.iterations,
         }
         if self.arch == ModelArch.EDGE:
             with self.lock:
