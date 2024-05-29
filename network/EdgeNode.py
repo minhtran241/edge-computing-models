@@ -90,13 +90,12 @@ class EdgeNode:
         tt = emit_data(self.sio_client, sent_data)
         self.transtime += tt
 
-        self.sio_client.emit(
-            "recv",
-            data={
-                "acc_transtime": self.transtime,
-                "acc_proctime": self.proctime,
-            },
-        )
+        time_stats = {
+            "acc_transtime": self.transtime,
+            "acc_proctime": self.proctime,
+        }
+        self.logger.info(time_stats)
+        self.sio_client.emit("recv", data=time_stats)
 
     def run_server(self):
         """

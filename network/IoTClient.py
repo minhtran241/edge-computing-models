@@ -82,7 +82,7 @@ class IoTClient(threading.Thread):
             "algo": self.algo.name,
             "data": data,
         }
-        if self.arch == ModelArch.IOT:
+        if self.arch == ModelArch.EDGE:
             with self.lock:
                 tt = emit_data(self.sio, sent_data)
                 self.transtime += tt
@@ -90,20 +90,17 @@ class IoTClient(threading.Thread):
             tt = emit_data(self.sio, sent_data)
             self.transtime += tt
 
-    def _emit_statistics(self):
+    def _emit_timestats(self):
         """
         Emit accumulated transmission and processing times to the target node.
         """
-        if self.arch == ModelArch.IOT:
+        time_stats = {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
+        self.logger.info(time_stats)
+        if self.arch == ModelArch.EDGE:
             with self.lock:
-                self.sio.emit(
-                    "recv",
-                    {"acc_transtime": self.transtime, "acc_proctime": self.proctime},
-                )
+                self.sio.emit("recv", time_stats)
         else:
-            self.sio.emit(
-                "recv", {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
-            )
+            self.sio.emit("recv", time_stats)
 
     def connect_to_target(self):
         """
@@ -136,7 +133,7 @@ class IoTClient(threading.Thread):
                 else:
                     self._format_and_send(data_size, formatted_data)
 
-            self._emit_statistics()
+            self._emit_timestats()
 
             while self.running.is_set():
                 time.sleep(1)
