@@ -16,13 +16,13 @@ def start_iot(
         []
     )  # Initialize the iot_clients list outside the try block
     try:
-        algo: Algorithm = Algorithm[algo_code]
+        algo = Algorithm[algo_code]
         # Check if the algorithm and size option are supported
         if size_option not in algo.value["avail_sizes"]:
             raise ValueError(
                 f"Invalid data size option: {size_option}. Supported options: {algo.value['avail_sizes']}"
             )
-        arch: ModelArch = ModelArch[arch_name]
+        arch = ModelArch[arch_name]
 
         # Get edge node addresses
         NUM_TARGET_NODES = int(os.getenv("NUM_IOT_TARGETS"))
@@ -34,7 +34,6 @@ def start_iot(
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
                 target_address=ta,
-                data_dir=algo["data_dir"],
                 size_option=size_option,
                 algo=algo,
                 iterations=iterations,

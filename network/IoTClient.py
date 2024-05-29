@@ -35,7 +35,6 @@ class IoTClient(threading.Thread):
     def __init__(
         self,
         device_id: str,
-        data_dir: Any,
         size_option: str,
         target_address: str,
         algo: Algorithm,
@@ -44,7 +43,7 @@ class IoTClient(threading.Thread):
     ):
         super().__init__()
         self.device_id = device_id
-        self.data_dir = os.path.join(data_dir, size_option)
+        self.data_dir = os.path.join(algo.value["data_dir"], size_option)
         self.algo = algo
         self.size_option = size_option
         self.target_address = target_address
