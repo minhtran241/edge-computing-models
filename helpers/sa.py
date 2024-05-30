@@ -5,7 +5,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from helpers.common import read_txt_lines
 
 # Download the vader lexicon (if not already downloaded)
-# nltk.download("vader_lexicon")
+nltk.download("vader_lexicon")
 
 
 def collect_sa_data(dir: str, filename: str = "reviews.txt") -> List[str]:
