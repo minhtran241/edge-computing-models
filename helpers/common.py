@@ -3,6 +3,7 @@ import time
 import socketio
 from typing import Any, Union, List, Tuple
 from constants import VALID_ROLES
+from logging import Logger
 
 
 def safe_int(value, default):
@@ -171,3 +172,23 @@ def emit_data(sio_client: socketio.Client, data: Any) -> float:
         return transtime
     except Exception as e:
         raise e
+
+
+def print_dict(
+    dict_data: dict,
+    logger: Logger = None,
+) -> None:
+    """
+    Print the statistics of the data processing.
+
+    Args:
+        dict_data (dict): The dictionary containing the statistics.
+        proctime (float): The total processing time.
+    """
+    if logger is not None:
+        logger.info(dict_data)
+    else:
+        print("-" * 40)
+        for key, value in dict_data.items():
+            print(f"{key}: {value}")
+        print("-" * 40)

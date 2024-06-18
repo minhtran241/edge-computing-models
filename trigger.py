@@ -86,6 +86,9 @@ if __name__ == "__main__":
     print("iot <id> <algo_code> <size_option> <iterations>")
     print("edge <id>")
     print("cloud <id>")
+    print(
+        "⚠️ Note: If you use the 'edge' role, the iterations should be calculated as follows: iterations = iot or cloud iterations / num_edge_nodes because there are multiple edge nodes."
+    )
     print("=" * 40)
 
     try:
