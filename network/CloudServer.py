@@ -3,6 +3,8 @@ import socketio
 import queue
 import threading
 from dotenv import load_dotenv
+import pandas as pd
+from tabulate import tabulate
 from helpers.common import get_device_id, process_data, print_dict
 from helpers.logger import Logger
 from models.enums import ModelArch, Algorithm
@@ -81,30 +83,32 @@ class CloudServer:
         # Average transmission and processing times of all devices
         transtime = sum(self.transtimes.values()) / len(self.transtimes)
         proctime = sum(self.proctimes.values()) / len(self.proctimes)
+        if self.arch == ModelArch.EDGE:
+            df = pd.DataFrame(
+                {
+                    "Device ID": list(self.transtimes.keys()),
+                    "Files Received": [
+                        len(self.data.get(device_id, [])) for device_id in self.data
+                    ],
+                    "Total File Size": [
+                        sum(d["data_size"] for d in self.data.get(device_id, []))
+                        for device_id in self.data
+                    ],
+                    "Transmission Time": list(self.transtimes.values()),
+                    "Processing Time": list(self.proctimes.values()),
+                }
+            )
+            print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
         print_dict(
             dict_data={
                 "Architecture": arch.name,
                 "Number of Files Received": num_files,
                 "Total File Size": total_size,
-                "Total Transmission Time": transtime,
-                "Total Processing Time": proctime,
+                "Receive From": self.transtimes.keys(),
+                "Transmission Time": transtime,
+                "Processing Time": proctime,
             },
         )
-        # df = pd.DataFrame(
-        #     {
-        #         "Device ID": list(self.transtimes.keys()),
-        #         "Files Received": [
-        #             len(self.data.get(device_id, [])) for device_id in self.data
-        #         ],
-        #         "Total File Size": [
-        #             sum(d["data_size"] for d in self.data.get(device_id, []))
-        #             for device_id in self.data
-        #         ],
-        #         "Transmission Time": list(self.transtimes.values()),
-        #         "Processing Time": list(self.proctimes.values()),
-        #     }
-        # )
-        # print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
 
     def run_server(self):
         """

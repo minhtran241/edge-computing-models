@@ -188,7 +188,7 @@ def print_dict(
     if logger is not None:
         logger.info(dict_data)
     else:
-        print("-" * 40)
+        print("-" * 50)
         for key, value in dict_data.items():
             print(f"{key}: {value}")
-        print("-" * 40)
+        print("-" * 50)
