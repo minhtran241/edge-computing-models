@@ -78,8 +78,9 @@ class CloudServer:
         total_size = sum(
             d["data_size"] for device_id in self.data for d in self.data.get(device_id)
         )
-        transtime = sum(self.transtimes.values())
-        proctime = sum(self.proctimes.values())
+        # Average transmission and processing times of all devices
+        transtime = sum(self.transtimes.values()) / len(self.transtimes)
+        proctime = sum(self.proctimes.values()) / len(self.proctimes)
         print_dict(
             dict_data={
                 "Architecture": arch.name,
