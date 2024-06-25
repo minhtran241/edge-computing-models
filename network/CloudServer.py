@@ -104,7 +104,7 @@ class CloudServer:
                 "Architecture": arch.name,
                 "Number of Files Received": num_files,
                 "Total File Size": total_size,
-                "Receive From": self.transtimes.keys(),
+                "Receive From": list(self.transtimes.keys()),
                 "Transmission Time": transtime,
                 "Processing Time": proctime,
             },
