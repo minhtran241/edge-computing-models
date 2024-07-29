@@ -26,7 +26,7 @@ DATA_CONFIG: Dict[str, Dict[str, str]] = {
         "name": "Optical Character Recognition",
         "data_dir": "data/license_plates",
         "data_type": "image",
-        "avail_sizes": ["small", "large"],
+        "avail_sizes": ["small", "medium", "large"],
         "preprocess": fimg_from_dir,
         "process": ocr_license_plate,
     },
