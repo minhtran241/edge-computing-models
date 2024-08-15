@@ -29,7 +29,9 @@ class CloudServer:
         self.port = port
         self.arch = arch
         self.sio = socketio.Server(
-            always_connect=True, kwargs={"max_http_buffer_size": 10**8}
+            always_connect=True,
+            max_http_buffer_size=10**8,
+            engineio_logger=True,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
