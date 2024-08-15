@@ -63,9 +63,9 @@ data = {
     "OCR": {
         "Small Size [100 KBs Input]": {  # Done
             "54 Iterations": {
-                "Cloud": [62.5256, 0.1028],
+                "Cloud": [54.4293, 0.0868],
                 # "Edge": [25.2146, 0.0557],
-                "IoT Device": [151.7601, 0.1095],
+                "IoT Device": [152.2685, 0.1195],
             }
         },
         "Medium Size [500 KBs Input]": {  # Done
