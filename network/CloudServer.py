@@ -34,7 +34,7 @@ class CloudServer:
             engineio_logger=True,
             monitor_clients=False,
             # Set ping interval to infinity to prevent disconnections
-            ping_interval=None,
+            ping_interval=10**6,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
