@@ -35,6 +35,7 @@ class CloudServer:
             monitor_clients=False,
             # Set ping interval to infinity to prevent disconnections
             ping_interval=10**8,
+            http_compression=False,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
@@ -157,7 +158,9 @@ class CloudServer:
                     # self.logger.info(f"Received data from client node {device_id}")
                     self.queue.put((device_id, data))
                 else:
-                    self.logger.info(f"Result from client node {device_id}: {data}")
+                    self.logger.info(
+                        f"(#{self.num_recv_packets}) Result from client node {device_id}: {data}"
+                    )
                     self.data[device_id].append(data)
                 self.num_recv_packets += 1
                 # self.logger.info(f"Number of packets received: {self.num_recv_packets}")

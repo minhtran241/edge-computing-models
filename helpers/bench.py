@@ -77,9 +77,9 @@ data = {
         },
         "Large Size [1.5MB Input]": {
             "25 Iterations": {
-                "Cloud": [493.0855, 0.3813],  # Done
+                "Cloud": [493.0855, 0.3813],
                 # "Edge": [165.7513, 0.1204],
-                "IoT Device": [971.5538, 0.1318],
+                "IoT Device": [409.6299, 0.1420],
             }
         },
     },
