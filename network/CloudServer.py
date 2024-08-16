@@ -32,6 +32,8 @@ class CloudServer:
             always_connect=True,
             max_http_buffer_size=10**8,
             engineio_logger=True,
+            monitor_clients=False,
+            always_connect=True,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)

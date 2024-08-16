@@ -49,7 +49,9 @@ class IoTClient(threading.Thread):
         self.target_address = target_address
         self.iterations = iterations
         self.arch = arch
-        self.sio = socketio.Client(handle_sigint=True, reconnection=True, logger=True)
+        self.sio = socketio.Client(
+            handle_sigint=True, reconnection=True, logger=True, engineio_logger=True
+        )
         self.transtime = 0
         self.proctime = 0
         self.logger = Logger(self.device_id)
