@@ -50,7 +50,12 @@ class IoTClient(threading.Thread):
         self.iterations = iterations
         self.arch = arch
         self.sio = socketio.Client(
-            handle_sigint=True, reconnection=False, logger=True, engineio_logger=True
+            # handle_sigint=True,
+            # reconnection=False,
+            logger=True,
+            engineio_logger=True,
+            wait=True,
+            wait_timeout=10,
         )
         self.transtime = 0
         self.proctime = 0
