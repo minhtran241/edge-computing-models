@@ -13,25 +13,6 @@ load_dotenv()
 
 
 class IoTClient(threading.Thread):
-    """
-    IoT client class to send data to the targeted server nodes.
-
-    :param device_id: The unique identifier of the IoT client.
-    :type device_id: str
-    :param data_dir: The directory containing the data to be sent.
-    :type data_dir: Any
-    :param algo: The algorithm to be used for processing the data.
-    :type algo: Algorithm, optional
-    :param size_option: The size option of the data.
-    :type size_option: str
-    :param target_address: The address of the target node.
-    :type target_address: str
-    :param arch: The architecture type, either IoT, 'Edge' or 'Cloud'.
-    :type arch: ModelArch
-    :param iterations: The number of iterations to run, defaults to DEFAULT_ITERATIONS.
-    :type iterations: int, optional
-    """
-
     def __init__(
         self,
         device_id: str,
@@ -50,8 +31,6 @@ class IoTClient(threading.Thread):
         self.iterations = iterations
         self.arch = arch
         self.sio = socketio.Client(
-            # handle_sigint=True,
-            # reconnection=False,
             logger=True,
             engineio_logger=True,
         )
@@ -73,13 +52,6 @@ class IoTClient(threading.Thread):
         )
 
     def _format_and_send(self, data_size: int, data: Any):
-        """
-        Send data to the target node.
-
-        Args:
-            data_size (int): Size of the data being sent.
-            data (Any): Data to be sent.
-        """
         sent_data = {
             "arch": self.arch.name,
             "data_size": data_size,
@@ -97,9 +69,6 @@ class IoTClient(threading.Thread):
             self.transtime += tt
 
     def _emit_timestats(self):
-        """
-        Emit accumulated transmission and processing times to the target node.
-        """
         time_stats = {"acc_transtime": self.transtime, "acc_proctime": self.proctime}
         self.logger.info(time_stats)
         if self.arch == ModelArch.EDGE:
@@ -109,9 +78,6 @@ class IoTClient(threading.Thread):
             self.sio.emit("recv", time_stats)
 
     def connect_to_target(self):
-        """
-        Connect to the target node.
-        """
         self.sio.connect(
             self.target_address,
             headers={"device_id": self.device_id},
@@ -122,9 +88,6 @@ class IoTClient(threading.Thread):
         self.logger.info(f"Connected to target node ({self.target_address})")
 
     def run(self):
-        """
-        Run the IoT client.
-        """
         try:
             self.connect_to_target()
 
@@ -150,19 +113,19 @@ class IoTClient(threading.Thread):
             self.logger.error(f"An error occurred: {e}")
 
     def stop(self):
-        """
-        Stop the IoT client gracefully.
-        """
         self.logger.info("Stopping IoT client...")
         self.running.clear()
         self.disconnect_from_target()
 
     def disconnect_from_target(self):
-        """
-        Disconnect from the target node.
-        """
         self.sio.disconnect()
         self.logger.info(f"Disconnected from target node ({self.target_address}).")
 
     def __del__(self):
         self.stop()
+
+    def start_in_main_thread(self):
+        """
+        Start the IoT client in the main thread without using threading.
+        """
+        self.run()

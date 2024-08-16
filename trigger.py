@@ -40,8 +40,7 @@ def start_iot(
                 iterations=iterations,
                 arch=arch,
             )
-            iot_client.start()
-            iot_client.join()
+            iot_client.start_in_main_thread()
             return
 
         for i, ta in enumerate(TARGET_NODE_ADDRESSES):
