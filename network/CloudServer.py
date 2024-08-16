@@ -34,7 +34,7 @@ class CloudServer:
             engineio_logger=True,
             monitor_clients=False,
             # Set ping interval to infinity to prevent disconnections
-            ping_interval=10**6,
+            ping_interval=10**8,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
@@ -61,7 +61,7 @@ class CloudServer:
                 self.queue.task_done()
                 self.num_proc_packets += 1
                 self.logger.info(
-                    f"Processed data from node {device_id}: {result}. Total number of packets processed: {self.num_proc_packets}."
+                    f"Processed data from node {device_id}: {result} (# {self.num_proc_packets})"
                 )
                 with threading.Lock():
                     self.proctimes[device_id] += pt
@@ -154,13 +154,13 @@ class CloudServer:
 
             if "data" in data and data["data"] is not None:
                 if self.arch == ModelArch.CLOUD:
-                    self.logger.info(f"Received data from client node {device_id}")
+                    # self.logger.info(f"Received data from client node {device_id}")
                     self.queue.put((device_id, data))
                 else:
                     self.logger.info(f"Result from client node {device_id}: {data}")
                     self.data[device_id].append(data)
                 self.num_recv_packets += 1
-                self.logger.info(f"Number of packets received: {self.num_recv_packets}")
+                # self.logger.info(f"Number of packets received: {self.num_recv_packets}")
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.logger.info(
                     {
