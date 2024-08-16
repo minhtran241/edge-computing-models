@@ -54,8 +54,6 @@ class IoTClient(threading.Thread):
             # reconnection=False,
             logger=True,
             engineio_logger=True,
-            wait=True,
-            wait_timeout=10,
         )
         self.transtime = 0
         self.proctime = 0
@@ -118,6 +116,8 @@ class IoTClient(threading.Thread):
             self.target_address,
             headers={"device_id": self.device_id},
             transports=["websocket"],
+            wait=True,
+            wait_timeout=10,
         )
         self.logger.info(f"Connected to target node ({self.target_address})")
 
