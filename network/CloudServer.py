@@ -61,7 +61,7 @@ class CloudServer:
                 self.queue.task_done()
                 self.num_proc_packets += 1
                 self.logger.info(
-                    f"Processed data from node {device_id}: {result} (# {self.num_proc_packets})"
+                    f"(#{self.num_proc_packets}) Processed data from node {device_id}: {result}"
                 )
                 with threading.Lock():
                     self.proctimes[device_id] += pt
