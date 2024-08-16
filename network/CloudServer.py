@@ -33,6 +33,8 @@ class CloudServer:
             max_http_buffer_size=10**8,
             engineio_logger=True,
             monitor_clients=False,
+            # Set ping interval to infinity to prevent disconnections
+            ping_interval=None,
         )
         self.app = socketio.WSGIApp(self.sio)
         self.logger = Logger(self.device_id)
