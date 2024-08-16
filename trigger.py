@@ -30,6 +30,20 @@ def start_iot(
             os.getenv(f"IOT_TARGET_{i+1}") for i in range(NUM_TARGET_NODES)
         ]
 
+        # If the number of target nodes 1, start a single IoT client in the main thread
+        if NUM_TARGET_NODES == 1:
+            iot_client = IoTClient(
+                device_id=device_id,
+                target_address=TARGET_NODE_ADDRESSES[0],
+                size_option=size_option,
+                algo=algo,
+                iterations=iterations,
+                arch=arch,
+            )
+            iot_client.start()
+            iot_client.join()
+            return
+
         for i, ta in enumerate(TARGET_NODE_ADDRESSES):
             iot_client = IoTClient(
                 device_id=f"{device_id}-t{i+1}",
