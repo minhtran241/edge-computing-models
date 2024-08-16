@@ -61,23 +61,23 @@ def write_xlsx(workbook_path, data):
 
 data = {
     "OCR": {
-        "Small Size [100 KBs Input]": {  # Done
-            "54 Iterations": {
+        "Small Size [100 KBs Input]": {
+            "25 Iterations": {
                 "Cloud": [54.4293, 0.0868],
                 # "Edge": [25.2146, 0.0557],
                 "IoT Device": [152.2685, 0.1195],
             }
         },
-        "Medium Size [500 KBs Input]": {  # Done
-            "54 Iterations": {
+        "Medium Size [100KB Input]": {
+            "25 Iterations": {
                 "Cloud": [102.9382, 0.1708],
                 # "Edge": [144.5870, 0.0961],
-                "IoT Device": [884.0137, 0.1077],
+                "IoT Device": [70.7805, 0.1090],
             }
         },
-        "Large Size [5MB Input]": {  # Done
-            "54 Iterations": {
-                "Cloud": [493.0855, 0.3813],
+        "Large Size [5MB Input]": {
+            "25 Iterations": {
+                "Cloud": [493.0855, 0.3813],  # Done
                 # "Edge": [165.7513, 0.1204],
                 "IoT Device": [971.5538, 0.1318],
             }
