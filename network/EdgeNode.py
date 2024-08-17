@@ -34,12 +34,18 @@ class EdgeNode:
         self.device_id = device_id
         self.cloud_addr = cloud_addr
         self.port = port
-        self.sio_client = socketio.Client()
+        self.sio_client = socketio.Client(
+            logger=True,
+            engineio_logger=True,
+        )
         self.sio_server = socketio.Server(
             always_connect=True,
-            logger=True,
             max_http_buffer_size=10**8,
             engineio_logger=True,
+            monitor_clients=False,
+            # Set ping interval to infinity to prevent disconnections
+            ping_interval=10**8,
+            http_compression=False,
         )
         self.app = socketio.WSGIApp(self.sio_server)
         self.logger = Logger(self.device_id)
