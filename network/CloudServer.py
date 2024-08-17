@@ -154,6 +154,7 @@ class CloudServer:
             self.proctimes.setdefault(device_id, 0)
 
             if "data" in data and data["data"] is not None:
+                self.num_recv_packets += 1
                 if self.arch == ModelArch.CLOUD:
                     # self.logger.info(f"Received data from client node {device_id}")
                     self.queue.put((device_id, data))
@@ -162,7 +163,6 @@ class CloudServer:
                         f"(#{self.num_recv_packets}) Result from client node {device_id}: {data}"
                     )
                     self.data[device_id].append(data)
-                self.num_recv_packets += 1
                 # self.logger.info(f"Number of packets received: {self.num_recv_packets}")
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.logger.info(
