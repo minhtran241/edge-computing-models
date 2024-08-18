@@ -14,14 +14,14 @@ load_dotenv()
 
 class CloudServer:
     """
-    Cloud server class to receive processed data from client nodes.
+    Cloud server class to receive and process data from client nodes.
 
     :param device_id: The unique identifier of the cloud server.
     :type device_id: str
     :param port: The port on which the cloud server will run, defaults to 20000.
     :type port: int, optional
     :param arch: The architecture type, either 'Edge' or 'Cloud', defaults to ModelArch.EDGE.
-    :type arch: Any, optional
+    :type arch: ModelArch, optional
     """
 
     def __init__(self, device_id: str, arch: ModelArch, port: int = 20000):
@@ -32,9 +32,8 @@ class CloudServer:
             always_connect=True,
             max_http_buffer_size=10**8,
             engineio_logger=True,
-            monitor_clients=False,
-            # Set ping interval to infinity to prevent disconnections
-            ping_interval=10**8,
+            ping_interval=10
+            ** 8,  # Set ping interval to infinity to prevent disconnections
             http_compression=False,
         )
         self.app = socketio.WSGIApp(self.sio)
@@ -45,6 +44,8 @@ class CloudServer:
         self.num_proc_packets = 0
         self.transtimes = {}
         self.proctimes = {}
+
+        # Log the initialization details
         self.logger.info(
             {"device_id": self.device_id, "port": self.port, "arch": self.arch.name}
         )
@@ -52,18 +53,26 @@ class CloudServer:
     def process_recv_data(self):
         """
         Process the received data from IoT devices.
+        This function runs in a separate thread to continuously process data from the queue.
         """
         while True:
             try:
-                device_id, data = self.queue.get(timeout=1)
-                algo = Algorithm[data["algo"]]
-                recv_data = data["data"]
+                device_id, data = self.queue.get(
+                    timeout=1
+                )  # Fetch data from the queue with timeout
+                algo = Algorithm[data["algo"]]  # Get the algorithm type
+                recv_data = data["data"]  # Extract the received data
+
+                # Process the data using the algorithm's processing function
                 result, pt = process_data(func=algo.value["process"], data=recv_data)
-                self.queue.task_done()
+
+                # Update the processed data count and log the result
                 self.num_proc_packets += 1
                 self.logger.info(
                     f"(#{self.num_proc_packets}) Processed data from node {device_id}: {result}"
                 )
+
+                # Update processing times and store the result
                 with threading.Lock():
                     self.proctimes[device_id] += pt
                     self.data.setdefault(device_id, []).append(
@@ -76,51 +85,55 @@ class CloudServer:
                             "iot_device_id": device_id,
                         }
                     )
+                self.queue.task_done()  # Mark the task as done in the queue
             except queue.Empty:
-                continue
+                continue  # Continue if the queue is empty
 
     def print_stats(self):
         """
         Print the statistics for all client nodes.
+        This function calculates and displays the number of files received, total file size,
+        and average transmission and processing times.
         """
         arch = self.arch
-        num_files = sum(len(self.data.get(device_id, [])) for device_id in self.data)
-        total_size = sum(
-            d["data_size"] for device_id in self.data for d in self.data.get(device_id)
-        )
-        # Average transmission and processing times of all devices
+        num_files = sum(len(files) for files in self.data.values())
+        total_size = sum(d["data_size"] for files in self.data.values() for d in files)
+
+        # Calculate average transmission and processing times
         transtime = sum(self.transtimes.values()) / len(self.transtimes)
         proctime = sum(self.proctimes.values()) / len(self.proctimes)
-        if self.arch == ModelArch.EDGE:
+
+        if arch == ModelArch.EDGE:
             df = pd.DataFrame(
                 {
                     "Device ID": list(self.transtimes.keys()),
-                    "Files Received": [
-                        len(self.data.get(device_id, [])) for device_id in self.data
-                    ],
+                    "Files Received": [len(files) for files in self.data.values()],
                     "Total File Size": [
-                        sum(d["data_size"] for d in self.data.get(device_id, []))
-                        for device_id in self.data
+                        sum(d["data_size"] for d in files)
+                        for files in self.data.values()
                     ],
                     "Transmission Time": list(self.transtimes.values()),
                     "Processing Time": list(self.proctimes.values()),
                 }
             )
             print(tabulate(df, headers="keys", tablefmt="pretty", showindex=False))
+
+        # Print overall statistics
         print_dict(
-            dict_data={
+            {
                 "Architecture": arch.name,
                 "Number of Files Received": num_files,
                 "Total File Size": total_size,
                 "Receive From": list(self.transtimes.keys()),
                 "Transmission Time": transtime,
                 "Processing Time": proctime,
-            },
+            }
         )
 
     def run_server(self):
         """
-        Run the cloud server.
+        Run the cloud server using eventlet's WSGI server.
+        This function handles incoming connections and serves the application.
         """
         try:
             eventlet.wsgi.server(eventlet.listen(("", self.port)), self.app)
@@ -129,13 +142,17 @@ class CloudServer:
 
     def run(self):
         """
-        Start the cloud server and set up event handlers.
+        Start the cloud server, set up event handlers, and handle incoming data.
+        This function spawns a server thread and sets up event handlers for client connections, disconnections,
+        and data reception.
         """
         server_thread = eventlet.spawn(self.run_server)
 
         @self.sio.event
         def connect(sid, environ):
-            device_id = get_device_id(environ) or sid
+            device_id = (
+                get_device_id(environ) or sid
+            )  # Retrieve or generate a device ID
             self.sio.save_session(sid, {"device_id": device_id})
             self.logger.info(f"Client node {device_id} connected, session ID: {sid}")
 
@@ -149,6 +166,8 @@ class CloudServer:
         def recv(sid, data):
             session = self.sio.get_session(sid)
             device_id = session["device_id"]
+
+            # Initialize data structures if not already present
             self.data.setdefault(device_id, [])
             self.transtimes.setdefault(device_id, 0)
             self.proctimes.setdefault(device_id, 0)
@@ -156,14 +175,12 @@ class CloudServer:
             if "data" in data and data["data"] is not None:
                 self.num_recv_packets += 1
                 if self.arch == ModelArch.CLOUD:
-                    # self.logger.info(f"Received data from client node {device_id}")
-                    self.queue.put((device_id, data))
+                    self.queue.put((device_id, data))  # Queue the data for processing
                 else:
                     self.logger.info(
                         f"(#{self.num_recv_packets}) Result from client node {device_id}: {data}"
                     )
                     self.data[device_id].append(data)
-                # self.logger.info(f"Number of packets received: {self.num_recv_packets}")
             elif "acc_transtime" in data and "acc_proctime" in data:
                 self.logger.info(
                     {
@@ -182,7 +199,7 @@ class CloudServer:
 
     def stop(self):
         """
-        Stop the cloud server.
+        Stop the cloud server gracefully.
         """
         self.logger.info("Stopping cloud server...")
         self.sio.shutdown()
