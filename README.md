@@ -16,14 +16,14 @@ This model leverages multiple edge servers connected to the cloud. The edge serv
 
 #### Current Implementation
 
-- **IoT Devices**: Raspberry Pi 3
-- **Edge Servers**: Raspberry Pi 4
+-   **IoT Devices**: Raspberry Pi 3
+-   **Edge Servers**: Raspberry Pi 4
 
 #### Advantages
 
-- **Low Latency**: Proximity of data processing to the source shortens the time to results, critical for real-time applications.
-- **Scalability**: Easily scale edge servers up or down according to data volume.
-- **Reliability**: Multiple edge servers ensure no single point of failure, enhancing reliability.
+-   **Low Latency**: Proximity of data processing to the source shortens the time to results, critical for real-time applications.
+-   **Scalability**: Easily scale edge servers up or down according to data volume.
+-   **Reliability**: Multiple edge servers ensure no single point of failure, enhancing reliability.
 
 ### IoT Devices Architecture
 
@@ -35,14 +35,14 @@ This model emphasizes the architecture of IoT devices for data collection and lo
 
 #### Implementation Details
 
-- **IoT Devices**: Raspberry Pi 3
-- **Cloud Server**: Laptop
+-   **IoT Devices**: Raspberry Pi 3
+-   **Cloud Server**: Laptop
 
 #### Benefits
 
-- **Cost-effective**: IoT devices are generally cheaper than edge servers, providing an economical solution for data collection and processing.
-- **Low Power Consumption**: Designed for energy efficiency, IoT devices are suitable where power consumption is a concern.
-- **Scalability**: IoT devices can be scaled up or down easily based on the data volume.
+-   **Cost-effective**: IoT devices are generally cheaper than edge servers, providing an economical solution for data collection and processing.
+-   **Low Power Consumption**: Designed for energy efficiency, IoT devices are suitable where power consumption is a concern.
+-   **Scalability**: IoT devices can be scaled up or down easily based on the data volume.
 
 ### Cloud Computing Architecture
 
@@ -54,22 +54,22 @@ This model highlights cloud computing architecture for processing data from IoT 
 
 #### Implementation Strategy
 
-- **IoT Devices**: Raspberry Pi 3
-- **Cloud Server**: Laptop
+-   **IoT Devices**: Raspberry Pi 3
+-   **Cloud Server**: Laptop
 
 #### Key Advantages
 
-- **Scalability**: Cloud servers can be scaled up or down effortlessly based on the data volume.
-- **High Performance**: Cloud servers are designed to manage large data volumes efficiently and quickly.
-- **Reliability**: High reliability with built-in redundancy ensures data safety.
+-   **Scalability**: Cloud servers can be scaled up or down effortlessly based on the data volume.
+-   **High Performance**: Cloud servers are designed to manage large data volumes efficiently and quickly.
+-   **Reliability**: High reliability with built-in redundancy ensures data safety.
 
 ## Usage
 
 ### Requirements
 
-- [Python 3.8](https://www.python.org/downloads/release/python-380/)
-- [Raspberry Pi](https://www.raspberrypi.org/) with Raspbian OS installed
-- [SocketIO](https://python-socketio.readthedocs.io/en/latest/)
+-   [Python 3.8](https://www.python.org/downloads/release/python-380/)
+-   [Raspberry Pi](https://www.raspberrypi.org/) with Raspbian OS installed
+-   [SocketIO](https://python-socketio.readthedocs.io/en/latest/)
 
 ### Set up environment variables
 
@@ -96,22 +96,23 @@ To run the code, you need to start the servers in the following order:
 For all the servers, you can run the following command:
 
 ```bash
-python trigger.py
+python iot-edge-cloud <role> <id> --algo_code <algo_code> --size_option <size_option> --iterations <iterations> --model_arch <model_arch>
 ```
 
 This will require your input to specify the following parameters:
 
-- The role of the device (IoT device, edge server or cloud)
-  - Valid roles: `iot`, `edge`, `cloud`
-- The device ID
-- The algorithm code [See the list of available algorithms](#available-algorithms)
-- The size of the data
-- Number of iterations
-- The model architecture [See the enum `ModelArch` in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file]
+-   The role of the device (IoT device, edge server or cloud)
+    -   Valid roles: `iot`, `edge`, `cloud`
+-   The device ID
+-   The algorithm code [See the list of available algorithms](#available-algorithms)
+-   The size of the data
+-   Number of iterations
+-   The model architecture [See the enum `ModelArch` in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file]
 
 #### Input format
 
 ```
+
 ================
 Available roles:
 iot <id> <algo_code> <size_option> <iterations>
@@ -119,27 +120,30 @@ edge <id>
 cloud <id>
 Set up device parameters: ...
 ================
+
 ```
 
 ```
+
 Set up model architecture ['IOT', 'EDGE', 'CLOUD']: ...
+
 ```
 
 ### Available algorithms
 
-| Algorithm | Code | Description |
-| --- | --- | --- |
-| Smith-Waterman | `sw` | A dynamic programming algorithm for sequence alignment |
-| Sentiment Analysis | `sa` | An algorithm for analyzing the sentiment of text data |
-| Tesseract OCR | `ocr` | An optical character recognition algorithm for text recognition |
-| YOLOv8 | `yolo` | An object detection algorithm for image recognition |
+| Algorithm          | Code   | Description                                                     |
+| ------------------ | ------ | --------------------------------------------------------------- |
+| Smith-Waterman     | `sw`   | A dynamic programming algorithm for sequence alignment          |
+| Sentiment Analysis | `sa`   | An algorithm for analyzing the sentiment of text data           |
+| Tesseract OCR      | `ocr`  | An optical character recognition algorithm for text recognition |
+| YOLOv8             | `yolo` | An object detection algorithm for image recognition             |
 
 ### Adding new algorithms
 
 The helper functions for the algorithms should be placed in the [`/helpers`](https://github.com/minhtran241/edge-computing-models/tree/main/helpers) module. For each algorithm, you need at least two functions: `preprocess` and `process`.
 
-- The `preprocess` function is used to prepare the input data for the algorithm in the IoT device. This function should take the `data_dir` as input and return the processed data.
-- The `process` function is used to run the algorithm on the input data and return the result in the edge server. This function should take the `data` as input and return the result. The signature of the function should be as follows:
+-   The `preprocess` function is used to prepare the input data for the algorithm in the IoT device. This function should take the `data_dir` as input and return the processed data.
+-   The `process` function is used to run the algorithm on the input data and return the result in the edge server. This function should take the `data` as input and return the result. The signature of the function should be as follows:
 
 ```python
 from typing import Any
@@ -157,11 +161,11 @@ def process_name(data: Any) -> Any:
  pass
 ```
 
-- Update the `DATA_CONFIG` dictionary in the [`config.py`](https://github.com/minhtran241/edge-computing-models/blob/main/config.py) file to include the new algorithm.
+-   Update the `DATA_CONFIG` dictionary in the [`config.py`](https://github.com/minhtran241/edge-computing-models/blob/main/config.py) file to include the new algorithm.
 
-- Update the `Algorithm` enum in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file to include the new algorithm.
+-   Update the `Algorithm` enum in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file to include the new algorithm.
 
 ## Contributors
 
-- [Minh Tran](https://minhtran-nine.vercel.app): Research Assistant, Grand Valley State University
-- [Dr. Xiang Cao](https://www.linkedin.com/in/xiang-cao-15183570/): Associate Professor, Grand Valley State University
+-   [Minh Tran](https://minhtran-nine.vercel.app): Research Assistant, Grand Valley State University
+-   [Dr. Xiang Cao](https://www.linkedin.com/in/xiang-cao-15183570/): Associate Professor, Grand Valley State University
