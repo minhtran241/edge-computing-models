@@ -143,9 +143,10 @@ def process_data(func: Any, data: Any) -> Tuple[Any, float]:
         Tuple[Any, float]: The processed data and the processing time.
     """
     try:
-        start_time = time.time()
+        start = time.perf_counter()
         result = func(data)
-        proctime = time.time() - start_time
+        finished = time.perf_counter()
+        proctime = finished - start
         return result, proctime
     except Exception as e:
         raise e
@@ -163,9 +164,10 @@ def emit_data(sio_client: socketio.Client, data: Any) -> float:
         float: The transmission time.
     """
     try:
-        start_time = time.time()
+        start = time.perf_counter()
         sio_client.emit("recv", data=data)
-        transtime = time.time() - start_time
+        finished = time.perf_counter()
+        transtime = finished - start
         return transtime
     except Exception as e:
         raise e

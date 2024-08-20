@@ -9,7 +9,7 @@ from services.EdgeNode import EdgeNode
 from services.CloudServer import CloudServer
 
 # Constants
-VALID_ROLES: list[str] = ["iot", "edge", "cloud"]
+VALID_ROLES: List[str] = ["iot", "edge", "cloud"]
 DEFAULT_ITERATIONS: int = 54
 DEFAULT_DATA_SIZE_OPTION: str = "small"
 
