@@ -3,11 +3,11 @@ import time
 from typing import List, Dict, Any, Union
 from ultralytics import YOLO
 from helpers.common import bytes_to_image
-from constants import YOLO_MODEL
 
 
 def _predict_images(
-    img_batch: Union[List[str], str], model: YOLO = YOLO_MODEL
+    img_batch: Union[List[str], str],
+    model: YOLO = YOLO(model=os.getenv("YOLOV8_MODEL_PATH") or "yolov8m.pt"),
 ) -> List[Dict[str, Any]]:
     """
     Predict the objects in the images using the YOLO model.

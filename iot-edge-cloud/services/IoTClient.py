@@ -5,10 +5,8 @@ import threading
 from typing import Any
 from dotenv import load_dotenv
 from tqdm import tqdm
-from constants import DEFAULT_ITERATIONS
 from helpers.common import cal_data_size, process_data, emit_data
-from helpers.logger import Logger
-from models.enums import ModelArch, Algorithm
+from . import *
 
 load_dotenv()
 
@@ -21,7 +19,7 @@ class IoTClient(threading.Thread):
         target_address: str,
         algo: Algorithm,
         arch: ModelArch,
-        iterations: int = DEFAULT_ITERATIONS,
+        iterations: int,
     ):
         super().__init__()
         self.device_id = device_id

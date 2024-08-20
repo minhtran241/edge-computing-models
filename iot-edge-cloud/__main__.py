@@ -2,12 +2,16 @@ import os
 import click
 from typing import List
 from dotenv import load_dotenv
-from constants import DEFAULT_ITERATIONS, DEFAULT_DATA_SIZE_OPTION
-from helpers.common import get_nid, safe_int
-from models.enums import Algorithm, ModelArch
-from network.IoTClient import IoTClient
-from network.EdgeNode import EdgeNode
-from network.CloudServer import CloudServer
+from helpers.common import get_nid
+from services import Algorithm, ModelArch
+from services.IoTClient import IoTClient
+from services.EdgeNode import EdgeNode
+from services.CloudServer import CloudServer
+
+# Constants
+VALID_ROLES: list[str] = ["iot", "edge", "cloud"]
+DEFAULT_ITERATIONS: int = 54
+DEFAULT_DATA_SIZE_OPTION: str = "small"
 
 
 def start_iot(
@@ -87,10 +91,9 @@ def start_cloud(device_id: str, arch_name: str) -> None:
         cloud.stop()
 
 
+# python3 trigger.py cloud 1 --algo-code ocr --size-option small --iterations 10 --arch-name cloud
 @click.command()
-@click.argument(
-    "role", type=click.Choice(["iot", "edge", "cloud"], case_sensitive=False)
-)
+@click.argument("role", type=click.Choice(VALID_ROLES, case_sensitive=False))
 @click.argument("device_id")
 @click.option(
     "--algo-code",

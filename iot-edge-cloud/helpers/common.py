@@ -2,7 +2,6 @@ import os
 import time
 import socketio
 from typing import Any, Union, List, Tuple
-from constants import VALID_ROLES
 from logging import Logger
 
 
@@ -24,8 +23,6 @@ def get_nid(role: str, id: int = 0) -> str:
     Returns:
         str: The node ID.
     """
-    if role not in VALID_ROLES:
-        raise ValueError(f"Invalid role: {role}. Valid roles are: {VALID_ROLES}")
     return f"{role[0]}{id}"
 
 
