@@ -167,8 +167,7 @@ def emit_data(sio_client: socketio.Client, data: Any) -> float:
         start = time.perf_counter()
         sio_client.emit("recv", data=data)
         finished = time.perf_counter()
-        transtime = finished - start
-        return transtime
+        return finished - start
     except Exception as e:
         raise e
 

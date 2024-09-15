@@ -4,7 +4,6 @@ import time
 import threading
 from typing import Any
 from dotenv import load_dotenv
-from tqdm import tqdm
 from helpers.common import cal_data_size, process_data, emit_data
 from . import *
 
@@ -94,7 +93,7 @@ class IoTClient(threading.Thread):
             formatted_data = self.algo.value["preprocess"](self.data_dir)
 
             # Wrap the iterations loop with tqdm for progress tracking
-            for _ in tqdm(range(self.iterations), desc="Processing iterations"):
+            for _ in self.iterations:
                 if self.arch == ModelArch.IOT:
                     result, pt = process_data(
                         func=self.algo.value["process"], data=formatted_data
