@@ -96,7 +96,7 @@ To run the code, you need to start the servers in the following order:
 For all the servers, you can run the following command:
 
 ```bash
-python iot-edge-cloud <role> <id> --algo_code <algo_code> --size_option <size_option> --iterations <iterations> --model_arch <model_arch>
+python iot-edge-cloud <role> <id> --algo-code <algo-code> --size-option <size-option> --iterations <iterations> --arch-name <--arch-name>
 ```
 
 This will require your input to specify the following parameters:
