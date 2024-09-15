@@ -93,7 +93,7 @@ class IoTClient(threading.Thread):
             formatted_data = self.algo.value["preprocess"](self.data_dir)
 
             # Wrap the iterations loop with tqdm for progress tracking
-            for _ in self.iterations:
+            for _ in range(self.iterations):
                 if self.arch == ModelArch.IOT:
                     result, pt = process_data(
                         func=self.algo.value["process"], data=formatted_data
