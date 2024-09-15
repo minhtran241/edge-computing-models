@@ -65,42 +65,42 @@ data = {
             "54 Iterations": {
                 "Cloud": [7.9265, 0.1118],
                 # "Edge": [25.2146, 0.0557],
-                "IoT Device": [93.5467, 0.1627],
+                "IoT Device": [86.3600, 0.1615],
             }
         },
         "Medium Size [500KB Input]": {
-            "25 Iterations": {
-                "Cloud": [128.2758, 0.0917],
+            "54 Iterations": {
+                "Cloud": [146.4107, 0.1242],
                 # "Edge": [144.5870, 0.0961],
-                "IoT Device": [406.9235, 0.0912],
+                "IoT Device": [892.2971, 0.1818],
             }
         },
         "Large Size [1.5MB Input]": {  # Done
-            "25 Iterations": {
-                "Cloud": [188.6251, 0.1666],
+            "54 Iterations": {
+                "Cloud": [148.2733, 0.1468],
                 # "Edge": [165.7513, 0.1204],
-                "IoT Device": [410.5571, 0.0927],
+                "IoT Device": [894.5430, 0.1875],
             }
         },
     },
     "Sentiment Analysis": {
         "Small Size [60 Reviews Input]": {  # Done
             "54 Iterations": {
-                "Cloud": [23.1357, 0.1655],
+                "Cloud": [10.7488, 0.9052],
                 # "Edge": [21.3208, 0.1480],
-                "IoT Device": [152.7544, 0.0522],
+                "IoT Device": [152.7544, 0.1061],
             }
         },
         "Medium Size [200 Reviews Input]": {  # Done
             "54 Iterations": {
-                "Cloud": [40.6018, 0.2960],
+                "Cloud": [35.2881, 3.5273],
                 # "Edge": [72.1063, 0.3695],
-                "IoT Device": [565.6999, 0.0539],
+                "IoT Device": [554.7239, 0.0972],
             }
         },
         "Large Size [1000 Reviews Input]": {  # Done
             "54 Iterations": {
-                "Cloud": [371.7102, 1.1002],
+                "Cloud": [181.8409, 22.5347],
                 # "Edge": [358.7299, 1.2207],
                 "IoT Device": [2802.7010, 0.0563],
             }

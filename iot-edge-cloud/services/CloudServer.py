@@ -1,3 +1,4 @@
+import sys
 import eventlet
 import socketio
 import queue
@@ -30,7 +31,7 @@ class CloudServer:
         self.sio = socketio.Server(
             always_connect=True,
             max_http_buffer_size=10**8,
-            engineio_logger=True,
+            # engineio_logger=True,
             ping_interval=10
             ** 8,  # Set ping interval to infinity to prevent disconnections
             http_compression=False,

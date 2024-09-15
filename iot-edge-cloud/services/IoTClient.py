@@ -30,7 +30,7 @@ class IoTClient(threading.Thread):
         self.arch = arch
         self.sio = socketio.Client(
             logger=True,
-            engineio_logger=True,
+            # engineio_logger=True,
         )
         self.transtime = 0
         self.proctime = 0
