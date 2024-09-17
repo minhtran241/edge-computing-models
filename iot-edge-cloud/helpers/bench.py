@@ -65,67 +65,67 @@ data = {
             "54 Iterations": {
                 "Cloud": [7.9265, 0.1118],
                 # "Edge": [25.2146, 0.0557],
-                "IoT Device": [86.3600, 0.1615],
+                "IoT Device": [94.5099, 0.0996],
             }
         },
         "Medium Size [500KB Input]": {
             "54 Iterations": {
                 "Cloud": [146.4107, 0.1242],
                 # "Edge": [144.5870, 0.0961],
-                "IoT Device": [892.2971, 0.1818],
+                "IoT Device": [826.4992, 0.1132],
             }
         },
         "Large Size [1.5MB Input]": {  # Done
             "54 Iterations": {
-                "Cloud": [148.2733, 0.1468],
+                "Cloud": [146.4495, 0.1677],
                 # "Edge": [165.7513, 0.1204],
-                "IoT Device": [894.5430, 0.1875],
+                "IoT Device": [874.2084, 0.1178],
             }
         },
     },
     "Sentiment Analysis": {
-        "Small Size [60 Reviews Input]": {  # Done
+        "Small Size [60 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [10.7488, 0.9052],
+                "Cloud": [11.0045, 0.1036],
                 # "Edge": [21.3208, 0.1480],
-                "IoT Device": [152.7544, 0.1061],
+                "IoT Device": [146.1104, 0.0509],
             }
         },
-        "Medium Size [200 Reviews Input]": {  # Done
+        "Medium Size [200 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [35.2881, 3.5273],
+                "Cloud": [37.0548, 0.2493],
                 # "Edge": [72.1063, 0.3695],
-                "IoT Device": [554.7239, 0.0972],
+                "IoT Device": [538.8425, 0.0520],
             }
         },
-        "Large Size [1000 Reviews Input]": {  # Done
+        "Large Size [1000 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [181.8409, 22.5347],
+                "Cloud": [183.0799, 1.1436],
                 # "Edge": [358.7299, 1.2207],
-                "IoT Device": [2802.7010, 0.0563],
+                "IoT Device": [2812.2925, 0.0535],
             }
         },
     },
     "Smith-Waterman": {
-        "Small Size [25 KBs Input]": {  # Done
+        "Small Size [25 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [26.1891, 0.1453],
+                "Cloud": [12.5588, 0.0660],
                 # "Edge": [27.0720, 0.1543],
-                "IoT Device": [195.6620, 0.0566],
+                "IoT Device": [216.5213, 0.0509],
             }
         },
-        "Medium Size [50 KBs Input]": {  # Done
+        "Medium Size [50 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [156.0036, 0.1611],
+                "Cloud": [39.0103, 0.1342],
                 # "Edge": [38.2603, 0.0384],
-                "IoT Device": [678.9911, 0.0581],
+                "IoT Device": [676.6986, 0.0555],
             }
         },
         "Large Size [100 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [239.9267, 0.2140],
+                "Cloud": [07.1914, 0.1646],
                 # "Edge": [107.4908, 0.0383],
-                "IoT Device": [1881.4924, 0.0602],
+                "IoT Device": [1838.2641, 0.0580],
             }
         },
     },
