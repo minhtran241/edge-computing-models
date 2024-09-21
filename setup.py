@@ -31,7 +31,6 @@ setup(
         "nltk>=3.5",
         "python-dotenv>=0.14.0",
         "python-socketio>=4.6.0",
-        "tqdm>=4.48.0",
         "ultralytics>=8.0.0",
         "eventlet>=0.30.0",
         "tabulate>=0.8.7",

@@ -132,4 +132,4 @@ data = {
 }
 
 # Call the function to write data
-write_xlsx("../bench/results.xlsx", data)
+write_xlsx("./results.xlsx", data)

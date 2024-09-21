@@ -190,3 +190,13 @@ def print_dict(
         for key, value in dict_data.items():
             print(f"{key}: {value}")
         print("-" * 50)
+
+
+def readf(file_path: str) -> Any:
+    with open(file_path, "r") as f:
+        return eval(f.read())
+    
+
+def writef(file_path: str, data: Any) -> None:
+	with open(file_path, "w") as f:
+		f.write(str(data))

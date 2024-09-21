@@ -96,18 +96,18 @@ To run the code, you need to start the servers in the following order:
 For all the servers, you can run the following command:
 
 ```bash
-python iot-edge-cloud <role> <id> --algo-code <algo-code> --size-option <size-option> --iterations <iterations> --arch-name <--arch-name>
+python iot-edge-cloud <role> <id> --algo-code <algo-code> --size-option <size-option> --iterations <iterations> --arch <--arch> --edge-job <edge-job>
 ```
 
 This will require your input to specify the following parameters:
 
--   The role of the device (IoT device, edge server or cloud)
-    -   Valid roles: `iot`, `edge`, `cloud`
+-   The role of the device (IoT device, edge server or cloud): `iot`, `edge`, `cloud`
 -   The device ID
 -   The algorithm code [See the list of available algorithms](#available-algorithms)
 -   The size of the data
 -   Number of iterations
 -   The model architecture [See the enum `ModelArch` in the [`enums.py`](https://github.com/minhtran241/edge-computing-models/blob/main/models/enums.py) file]
+-   The edge job (`recv` or `send`) [Only for edge servers]. We separate the edge server into two parts: one for receiving data from the IoT devices and the other for sending data to the cloud server
 
 #### Input format
 

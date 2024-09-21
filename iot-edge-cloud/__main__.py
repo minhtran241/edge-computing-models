@@ -15,7 +15,7 @@ DEFAULT_DATA_SIZE_OPTION: str = "small"
 
 
 def start_iot(
-    device_id: str, algo_code: str, size_option: str, iterations: int, arch_name: str
+    device_id: str, algo_code: str, size_option: str, iterations: int, arch: str
 ) -> None:
     iot_clients: List[IoTClient] = []
     try:
@@ -25,7 +25,7 @@ def start_iot(
             raise ValueError(
                 f"Invalid data size option: {size_option}. Supported options: {algo.value['avail_sizes']}"
             )
-        arch = ModelArch[arch_name]
+        arch = ModelArch[arch]
 
         NUM_TARGET_NODES = int(os.getenv("NUM_IOT_TARGETS"))
         TARGET_NODE_ADDRESSES = [
@@ -68,9 +68,9 @@ def start_iot(
             iot_client.stop()
 
 
-def start_edge(device_id: str) -> None:
+def start_edge(device_id: str, job: str) -> None:
     try:
-        edge_node = EdgeNode(device_id)
+        edge_node = EdgeNode(device_id, job=job)
         edge_node.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
@@ -78,9 +78,9 @@ def start_edge(device_id: str) -> None:
         edge_node.stop()
 
 
-def start_cloud(device_id: str, arch_name: str) -> None:
+def start_cloud(device_id: str, arch: str) -> None:
     try:
-        arch: ModelArch = ModelArch[arch_name]
+        arch: ModelArch = ModelArch[arch]
         cloud = CloudServer(device_id, arch=arch)
         cloud.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
@@ -91,7 +91,8 @@ def start_cloud(device_id: str, arch_name: str) -> None:
         cloud.stop()
 
 
-# python3 trigger.py cloud 1 --algo-code ocr --size-option small --iterations 10 --arch-name cloud
+# python3 trigger.py cloud 1 --algo-code ocr --size-option small --iterations 10 --arch cloud
+# python3 
 @click.command()
 @click.argument("role", type=click.Choice(VALID_ROLES, case_sensitive=False))
 @click.argument("device_id")
@@ -115,12 +116,16 @@ def start_cloud(device_id: str, arch_name: str) -> None:
     show_default=True,
 )
 @click.option(
-    "--arch-name",
+    "--arch",
+	help="Model architecture",
     type=click.Choice(ModelArch._member_names_, case_sensitive=False),
-    prompt=True,
-    help="Model architecture",
 )
-def main(role, device_id, algo_code, size_option, iterations, arch_name):
+@click.option( # For edge node
+    "--edge-job",
+	help="Edge job type",
+    type=click.Choice(["recv", "send"], case_sensitive=False),
+)
+def main(role, device_id, algo_code, size_option, iterations, arch, edge_job):
     load_dotenv()
 
     device_id = get_nid(role, device_id)
@@ -131,12 +136,12 @@ def main(role, device_id, algo_code, size_option, iterations, arch_name):
             algo_code=algo_code.upper(),
             size_option=size_option,
             iterations=iterations,
-            arch_name=arch_name.upper(),
+            arch=arch.upper(),
         )
-    elif role == "edge":
-        start_edge(device_id)
     elif role == "cloud":
-        start_cloud(device_id, arch_name.upper())
+        start_cloud(device_id, arch.upper())
+    elif role == "edge":
+        start_edge(device_id, edge_job)
     else:
         click.echo(f"Unknown role: {role}")
 

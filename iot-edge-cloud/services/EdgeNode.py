@@ -6,43 +6,33 @@ import queue
 from typing import Any
 from dotenv import load_dotenv
 from . import *
-from helpers.common import get_device_id, process_data, emit_data
+from helpers.common import get_device_id, process_data, emit_data, readf, writef
 
 load_dotenv()
-
 
 class EdgeNode:
     """
     Edge node class to process data from IoT devices and send it to the cloud.
     """
 
-    def __init__(
-        self,
-        device_id: str,
-        port: int = 10000,
-        cloud_addr: str = os.getenv("EDGE_TARGET"),
-    ):
+    def __init__(self, device_id: str, port: int = 10000, job: str = "recv"):
         """
         Initialize the EdgeNode instance.
 
         Args:
             device_id (str): The unique identifier of the edge node.
             port (int, optional): The port on which the edge node will run. Defaults to 10000.
-            cloud_addr (str, optional): The address of the cloud server. Defaults to EDGE_TARGET.
+            job (str, optional): The job of the edge node, either 'recv' or 'send'. Defaults to 'recv'.
         """
         self.device_id = device_id
-        self.cloud_addr = cloud_addr
         self.port = port
-        self.sio_client = socketio.Client(
-            logger=True,
-            engineio_logger=True,
-        )
+        self.job = job
+        self.cloud_addr = os.getenv("EDGE_TARGET") if job == "send" else None
+        self.sio_client = socketio.Client(logger=True)
         self.sio_server = socketio.Server(
             always_connect=True,
             max_http_buffer_size=10**8,
-            engineio_logger=True,
             monitor_clients=False,
-            # Set ping interval to infinity to prevent disconnections
             ping_interval=10**8,
             http_compression=False,
         )
@@ -54,13 +44,12 @@ class EdgeNode:
         self.iters = 0
         self.num_proc_packets = 0
         self.running = threading.Event()
-        self.logger.info(
-            {
-                "device_id": self.device_id,
-                "port": self.port,
-                "cloud_addr": self.cloud_addr,
-            }
-        )
+        self.logger.info({
+            "device_id": self.device_id,
+            "port": self.port,
+            "cloud_addr": self.cloud_addr,
+            "job": self.job,
+        })
 
     def process_iot_data(self):
         """
@@ -69,38 +58,36 @@ class EdgeNode:
         while self.running.is_set():
             try:
                 device_id, data = self.queue.get(timeout=1)
-                self._process_iot_data(device_id, data)
+                sent_data = self._process_iot_data(device_id, data)
                 self.queue.task_done()
                 self.num_proc_packets += 1
                 if self.num_proc_packets == self.iters:
-                    self._emit_timestats()
+                    time_stats = {
+                        "acc_transtime": self.transtime,
+                        "acc_proctime": self.proctime,
+                    }
+                    writef("logs/time_stats.txt", time_stats)
+                    writef("logs/sent_data.txt", sent_data)
             except queue.Empty:
                 pass
 
-    def _emit_timestats(self):
-        time_stats = {
-            "acc_transtime": self.transtime,
-            "acc_proctime": self.proctime,
-        }
-        self.logger.info(time_stats)
-        self.sio_client.emit("recv", data=time_stats)
-
-    def _process_iot_data(self, device_id: str, data: Any):
+    def _process_iot_data(self, device_id: str, data: Any) -> dict:
         """
         Process the data received from an IoT device.
 
         Args:
             device_id (str): The identifier of the IoT device.
             data (Any): The data received from the IoT device.
+
+        Returns:
+            dict: The processed data.
         """
-        # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
         recv_data = data["data"]
         algo = Algorithm[data["algo"]]
 
         result, pt = process_data(func=algo.value["process"], data=recv_data)
         self.proctime += pt
 
-        # Remain attributes the same, just change the data to the result and the device_id of the IoT device
         sent_data = {
             "arch": data["arch"],
             "data_size": data["data_size"],
@@ -110,8 +97,20 @@ class EdgeNode:
             "iot_device_id": device_id,
         }
 
-        tt = emit_data(self.sio_client, sent_data)
-        self.transtime += tt
+        return sent_data
+
+    def emit_data_to_cloud(self):
+        """
+        Emit the processed data to the cloud server.
+        """
+        sent_data = readf("logs/sent_data.txt")
+        for _ in range(self.iters):
+            tt = emit_data(self.sio_client, sent_data)
+            self.transtime += tt
+        
+        time_stats = readf("logs/time_stats.txt")
+        self.logger.info(time_stats)
+        self.sio_client.emit("recv", data=time_stats)
 
     def run_server(self):
         """
@@ -144,9 +143,7 @@ class EdgeNode:
         def recv(sid, data):
             session = self.sio_server.get_session(sid)
             device_id = session["device_id"]
-            # device_id = "iot-1"
             if "data" in data and data["data"] is not None:
-                # Sample: data = {"data_size": data_size, "data_dir": data_dir, "data": formatted, "algo": algo}
                 if self.iters == 0:
                     self.iters = data["iters"]
                 self.queue.put((device_id, data))
@@ -155,25 +152,32 @@ class EdgeNode:
                 self.logger.info(
                     f"Accumulated transmission time from IoT device {device_id}: {data['acc_transtime']}s"
                 )
-                # self.proctime += data["acc_proctime"]
-                # self.logger.info(
-                #     f"Accumulated processing time from IoT device {device_id}: {data['acc_proctime']}s"
-                # )
 
+        pidt: threading.Thread = None
         try:
             self.running.set()
-            pidt = threading.Thread(target=self.process_iot_data, daemon=True)
-            pidt.start()
-            self.sio_client.connect(
-                self.cloud_addr,
-                headers={"device_id": self.device_id},
-                transports=["websocket"],
-            )
-            self.logger.info(f"Connected to cloud ({self.cloud_addr})")
+            
+            # Decide the thread target based on job type
+            if self.job == "recv":
+                pidt = threading.Thread(target=self.process_iot_data, daemon=True)
+            elif self.job == "send":
+                self.sio_client.connect(
+                    self.cloud_addr,
+                    headers={"device_id": self.device_id},
+                    transports=["websocket"],
+                )
+                self.logger.info(f"Connected to cloud ({self.cloud_addr})")
+                pidt = threading.Thread(target=self.emit_data_to_cloud, daemon=True)
+            if pidt:
+                pidt.start()
             server_thread.wait()
         except Exception as e:
-            pidt.join()
             self.logger.error(f"An error occurred: {e}")
+        finally:
+            # Ensure the thread is joined and resources are cleaned up
+            if pidt and pidt.is_alive():
+                pidt.join()
+            self.stop()
 
     def stop(self):
         """
@@ -183,6 +187,5 @@ class EdgeNode:
         self.running.clear()
         self.sio_client.disconnect()
         self.sio_server.shutdown()
-        # If there are still items in the queue, wait for them to be processed
         if self.queue.unfinished_tasks > 0:
             self.queue.join()
