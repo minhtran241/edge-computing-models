@@ -77,6 +77,7 @@ Create a `.env` file in the root directory and follow the template created in th
 
 ```bash
 EDGE_TARGET=
+EDGE_LOG_DIR=
 NUM_IOT_TARGETS=
 IOT_TARGET_1=
 IOT_TARGET_2=

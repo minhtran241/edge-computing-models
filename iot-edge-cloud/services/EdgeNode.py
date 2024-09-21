@@ -9,6 +9,7 @@ from . import *
 from helpers.common import get_device_id, process_data, emit_data, readf, writef
 
 load_dotenv()
+EDGE_LOG_DIR: str = os.getenv("EDGE_LOG_DIR", "edge_logs")
 
 class EdgeNode:
     """
@@ -66,8 +67,8 @@ class EdgeNode:
                         "acc_transtime": self.transtime,
                         "acc_proctime": self.proctime,
                     }
-                    writef("logs/time_stats.txt", time_stats)
-                    writef("logs/sent_data.txt", sent_data)
+                    writef(f"{EDGE_LOG_DIR}/time_stats.txt", time_stats)
+                    writef(f"{EDGE_LOG_DIR}/sent_data.txt", sent_data)
             except queue.Empty:
                 pass
 
@@ -103,12 +104,12 @@ class EdgeNode:
         """
         Emit the processed data to the cloud server.
         """
-        sent_data = readf("logs/sent_data.txt")
+        sent_data = readf(f"{EDGE_LOG_DIR}/sent_data.txt")
         for _ in range(self.iters):
             tt = emit_data(self.sio_client, sent_data)
             self.transtime += tt
         
-        time_stats = readf("logs/time_stats.txt")
+        time_stats = readf(f"{EDGE_LOG_DIR}/time_stats.txt")
         self.logger.info(time_stats)
         self.sio_client.emit("recv", data=time_stats)
 
@@ -156,7 +157,7 @@ class EdgeNode:
         pidt: threading.Thread = None
         try:
             self.running.set()
-            
+
             # Decide the thread target based on job type
             if self.job == "recv":
                 pidt = threading.Thread(target=self.process_iot_data, daemon=True)

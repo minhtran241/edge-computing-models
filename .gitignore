@@ -1,6 +1,9 @@
 # Received image folder
 recv_images/
 
+# Edge logs
+edge_logs/
+
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
