@@ -12,6 +12,7 @@ from services.CloudServer import CloudServer
 VALID_ROLES: List[str] = ["iot", "edge", "cloud"]
 DEFAULT_ITERATIONS: int = 54
 DEFAULT_DATA_SIZE_OPTION: str = "small"
+EDGE_LOG_DIR: str = os.getenv("EDGE_LOG_DIR", "edge_logs")
 
 
 def start_iot(
@@ -70,6 +71,13 @@ def start_iot(
 
 def start_edge(device_id: str, job: str) -> None:
     try:
+        # If log files not exists, create them. If there is content in the log files (time_stats.txt and sent_data.txt), remove content
+        if not os.path.exists(EDGE_LOG_DIR):
+            os.makedirs(EDGE_LOG_DIR)
+        else:
+            for f in ["time_stats.txt", "sent_data.txt"]:
+                with open(f"{EDGE_LOG_DIR}/{f}", "w") as file:
+                    file.write("")
         edge_node = EdgeNode(device_id, job=job)
         edge_node.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
@@ -92,7 +100,7 @@ def start_cloud(device_id: str, arch: str) -> None:
 
 
 # python3 trigger.py cloud 1 --algo-code ocr --size-option small --iterations 10 --arch cloud
-# python3 
+# python3
 @click.command()
 @click.argument("role", type=click.Choice(VALID_ROLES, case_sensitive=False))
 @click.argument("device_id")
@@ -117,12 +125,12 @@ def start_cloud(device_id: str, arch: str) -> None:
 )
 @click.option(
     "--arch",
-	help="Model architecture",
+    help="Model architecture",
     type=click.Choice(ModelArch._member_names_, case_sensitive=False),
 )
-@click.option( # For edge node
+@click.option(  # For edge node
     "--edge-job",
-	help="Edge job type",
+    help="Edge job type",
     type=click.Choice(["recv", "send"], case_sensitive=False),
 )
 def main(role, device_id, algo_code, size_option, iterations, arch, edge_job):
