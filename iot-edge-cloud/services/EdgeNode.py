@@ -11,6 +11,7 @@ from helpers.common import get_device_id, process_data, emit_data, readf, writef
 load_dotenv()
 EDGE_LOG_DIR: str = os.getenv("EDGE_LOG_DIR", "edge_logs")
 
+
 class EdgeNode:
     """
     Edge node class to process data from IoT devices and send it to the cloud.
@@ -45,12 +46,14 @@ class EdgeNode:
         self.iters = 0
         self.num_proc_packets = 0
         self.running = threading.Event()
-        self.logger.info({
-            "device_id": self.device_id,
-            "port": self.port,
-            "cloud_addr": self.cloud_addr,
-            "job": self.job,
-        })
+        self.logger.info(
+            {
+                "device_id": self.device_id,
+                "port": self.port,
+                "cloud_addr": self.cloud_addr,
+                "job": self.job,
+            }
+        )
 
     def process_iot_data(self):
         """
@@ -108,7 +111,7 @@ class EdgeNode:
         for _ in range(self.iters):
             tt = emit_data(self.sio_client, sent_data)
             self.transtime += tt
-        
+
         time_stats = readf(f"{EDGE_LOG_DIR}/time_stats.txt")
         self.logger.info(time_stats)
         self.sio_client.emit("recv", data=time_stats)
