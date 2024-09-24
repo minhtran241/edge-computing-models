@@ -69,16 +69,16 @@ def start_iot(
             iot_client.stop()
 
 
-def start_edge(device_id: str, job: str) -> None:
+def start_edge(device_id: str, job: str, edge_log_dir: str) -> None:
     try:
         # If log files not exists, create them. If there is content in the log files (time_stats.txt and sent_data.txt), remove content
-        if not os.path.exists(EDGE_LOG_DIR):
-            os.makedirs(EDGE_LOG_DIR)
+        if not os.path.exists(edge_log_dir):
+            os.makedirs(edge_log_dir)
         else:
             for f in ["time_stats.txt", "sent_data.txt"]:
-                with open(f"{EDGE_LOG_DIR}/{f}", "w") as file:
+                with open(f"{edge_log_dir}/{f}", "w") as file:
                     file.write("")
-        edge_node = EdgeNode(device_id, job=job)
+        edge_node = EdgeNode(device_id, job=job, edge_log_dir=edge_log_dir)
         edge_node.run()
     except (KeyboardInterrupt, SystemExit, Exception) as e:
         if isinstance(e, Exception):
@@ -149,7 +149,10 @@ def main(role, device_id, algo_code, size_option, iterations, arch, edge_job):
     elif role == "cloud":
         start_cloud(device_id, arch.upper())
     elif role == "edge":
-        start_edge(device_id, edge_job)
+        edge_log_dir = (
+            f"{EDGE_LOG_DIR}/{device_id}/{algo_code}-{size_option}-{iterations}"
+        )
+        start_edge(device_id, edge_job, edge_log_dir)
     else:
         click.echo(f"Unknown role: {role}")
 

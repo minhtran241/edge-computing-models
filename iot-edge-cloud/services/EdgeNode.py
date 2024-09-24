@@ -9,7 +9,6 @@ from . import *
 from helpers.common import get_device_id, process_data, emit_data, readf, writef
 
 load_dotenv()
-EDGE_LOG_DIR: str = os.getenv("EDGE_LOG_DIR", "edge_logs")
 
 
 class EdgeNode:
@@ -17,7 +16,13 @@ class EdgeNode:
     Edge node class to process data from IoT devices and send it to the cloud.
     """
 
-    def __init__(self, device_id: str, port: int = 10000, job: str = "recv"):
+    def __init__(
+        self,
+        device_id: str,
+        port: int = 10000,
+        job: str = "send",
+        edge_log_dir: str = None,
+    ):
         """
         Initialize the EdgeNode instance.
 
@@ -29,6 +34,7 @@ class EdgeNode:
         self.device_id = device_id
         self.port = port
         self.job = job
+        self.edge_log_dir = edge_log_dir
         self.cloud_addr = os.getenv("EDGE_TARGET") if job == "send" else None
         self.sio_client = socketio.Client(logger=True)
         self.sio_server = socketio.Server(
@@ -70,8 +76,8 @@ class EdgeNode:
                         "acc_transtime": self.transtime,
                         "acc_proctime": self.proctime,
                     }
-                    writef(f"{EDGE_LOG_DIR}/time_stats.txt", time_stats)
-                    writef(f"{EDGE_LOG_DIR}/sent_data.txt", sent_data)
+                    writef(f"{self.edge_log_dir}/time_stats.txt", time_stats)
+                    writef(f"{self.edge_log_dir}/sent_data.txt", sent_data)
             except queue.Empty:
                 pass
 
@@ -107,12 +113,18 @@ class EdgeNode:
         """
         Emit the processed data to the cloud server.
         """
-        sent_data = readf(f"{EDGE_LOG_DIR}/sent_data.txt")
+        sent_data = readf(f"{self.edge_log_dir}/sent_data.txt")
+        # Check if sent_data is empty or sent_data["data"] is empty
+        if not sent_data or not sent_data["data"]:
+            self.logger.error("No data to send to cloud")
+            self.stop()
+            return
+
         for _ in range(self.iters):
             tt = emit_data(self.sio_client, sent_data)
             self.transtime += tt
 
-        time_stats = readf(f"{EDGE_LOG_DIR}/time_stats.txt")
+        time_stats = readf(f"{self.edge_log_dir}/time_stats.txt")
         self.logger.info(time_stats)
         self.sio_client.emit("recv", data=time_stats)
 
