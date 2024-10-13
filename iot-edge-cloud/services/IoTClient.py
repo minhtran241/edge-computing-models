@@ -80,8 +80,8 @@ class IoTClient(threading.Thread):
             self.target_address,
             headers={"device_id": self.device_id},
             transports=["websocket"],
-            wait=True,
-            wait_timeout=10,
+            # wait=True,
+            # wait_timeout=10,
         )
         self.logger.info(f"Connected to target node ({self.target_address})")
 
