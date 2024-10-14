@@ -8,46 +8,49 @@ from services.IoTClient import IoTClient
 from services.EdgeNode import EdgeNode
 from services.CloudServer import CloudServer
 
+load_dotenv()
+
 # Constants
-VALID_ROLES: List[str] = ["iot", "edge", "cloud"]
+VALID_ROLES: List[str] = ["IOT", "EDGE", "CLOUD"]
 DEFAULT_ITERATIONS: int = 54
 DEFAULT_DATA_SIZE_OPTION: str = "small"
+ROLE = os.environ.get("ROLE", "EDGE").upper()
+DEVICE_ID = os.environ.get("DEVICE_ID", "").upper()
+
+
+def get_target_node_addresses(num_nodes: int) -> List[str]:
+    """Retrieve target node addresses from environment variables."""
+    return [os.getenv(f"IOT_TARGET_{i + 1}") for i in range(num_nodes)]
+
+
+def validate_size_option(algo_code: str, size_option: str) -> Algorithm:
+    """Validate the size option against the algorithm's available sizes."""
+    algo = Algorithm[algo_code]
+    if size_option not in algo.value["avail_sizes"]:
+        raise ValueError(
+            f"Invalid data size option: {size_option}. "
+            f"Supported options: {algo.value['avail_sizes']}"
+        )
+    return algo
 
 
 def start_iot(
     device_id: str, algo_code: str, size_option: str, iterations: int, arch_name: str
 ) -> None:
-    iot_clients: List[IoTClient] = []
+    """Start IoT clients and handle their lifecycle."""
     try:
-        algo = Algorithm[algo_code]
-
-        if size_option not in algo.value["avail_sizes"]:
-            raise ValueError(
-                f"Invalid data size option: {size_option}. Supported options: {algo.value['avail_sizes']}"
-            )
+        algo = validate_size_option(algo_code, size_option)
         arch = ModelArch[arch_name]
 
-        NUM_TARGET_NODES = int(os.getenv("NUM_IOT_TARGETS"))
-        TARGET_NODE_ADDRESSES = [
-            os.getenv(f"IOT_TARGET_{i+1}") for i in range(NUM_TARGET_NODES)
-        ]
+        num_nodes = int(os.getenv("NUM_IOT_TARGETS", "1"))
+        target_node_addresses = get_target_node_addresses(num_nodes)
+        iot_clients = []
 
-        if NUM_TARGET_NODES == 1:
+        for i, address in enumerate(target_node_addresses):
+            client_device_id = f"{device_id}-t{i + 1}" if num_nodes > 1 else device_id
             iot_client = IoTClient(
-                device_id=device_id,
-                target_address=TARGET_NODE_ADDRESSES[0],
-                size_option=size_option,
-                algo=algo,
-                iterations=iterations,
-                arch=arch,
-            )
-            iot_client.start_in_main_thread()
-            return
-
-        for i, ta in enumerate(TARGET_NODE_ADDRESSES):
-            iot_client = IoTClient(
-                device_id=f"{device_id}-t{i+1}",
-                target_address=ta,
+                device_id=client_device_id,
+                target_address=address,
                 size_option=size_option,
                 algo=algo,
                 iterations=iterations,
@@ -59,42 +62,40 @@ def start_iot(
         for iot_client in iot_clients:
             iot_client.join()
 
-    except (ValueError, KeyboardInterrupt, SystemExit) as e:
-        print(f"An error occurred: {e}")
+    except ValueError as e:
+        print(f"Configuration error: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(f"Unexpected error: {e}")
     finally:
         for iot_client in iot_clients:
             iot_client.stop()
 
 
 def start_edge(device_id: str) -> None:
+    """Start Edge node and handle its lifecycle."""
+    edge_node = EdgeNode(device_id)
     try:
-        edge_node = EdgeNode(device_id)
         edge_node.run()
-    except (KeyboardInterrupt, SystemExit, Exception) as e:
-        if isinstance(e, Exception):
-            edge_node.logger.error(f"An error occurred: {e}")
+    except Exception as e:
+        edge_node.logger.error(f"An error occurred: {e}")
+    finally:
         edge_node.stop()
 
 
 def start_cloud(device_id: str, arch_name: str) -> None:
+    """Start Cloud server and handle its lifecycle."""
+    cloud = CloudServer(device_id, arch=ModelArch[arch_name])
     try:
-        arch: ModelArch = ModelArch[arch_name]
-        cloud = CloudServer(device_id, arch=arch)
         cloud.run()
-    except (KeyboardInterrupt, SystemExit, Exception) as e:
-        if isinstance(e, Exception):
-            cloud.logger.error(f"An error occurred: {e}")
-        if len(cloud.data) > 0:
+    except Exception as e:
+        cloud.logger.error(f"An error occurred: {e}")
+    finally:
+        if cloud.data:
             cloud.print_stats()
         cloud.stop()
 
 
-# python3 trigger.py cloud 1 --algo-code ocr --size-option small --iterations 10 --arch-name cloud
 @click.command()
-@click.argument("role", type=click.Choice(VALID_ROLES, case_sensitive=False))
-@click.argument("device_id")
 @click.option(
     "--algo-code",
     default="SW",
@@ -117,28 +118,34 @@ def start_cloud(device_id: str, arch_name: str) -> None:
 @click.option(
     "--arch-name",
     type=click.Choice(ModelArch._member_names_, case_sensitive=False),
-    prompt=True,
+    prompt=True if ROLE != "EDGE" else False,
     help="Model architecture",
 )
-def main(role, device_id, algo_code, size_option, iterations, arch_name):
-    load_dotenv()
+def main(algo_code: str, size_option: str, iterations: int, arch_name: str) -> None:
+    """Main entry point to start IoT, Edge, or Cloud based on the ROLE environment variable."""
+    try:
+        if ROLE not in VALID_ROLES:
+            raise ValueError(f"Invalid role: {ROLE}")
+        if not DEVICE_ID:
+            raise ValueError("Device ID is not set in environment variables")
 
-    device_id = get_nid(role, device_id)
+        device_id = get_nid(ROLE, DEVICE_ID)
 
-    if role == "iot":
-        start_iot(
-            device_id=device_id,
-            algo_code=algo_code.upper(),
-            size_option=size_option,
-            iterations=iterations,
-            arch_name=arch_name.upper(),
-        )
-    elif role == "edge":
-        start_edge(device_id)
-    elif role == "cloud":
-        start_cloud(device_id, arch_name.upper())
-    else:
-        click.echo(f"Unknown role: {role}")
+        if ROLE == "IOT":
+            start_iot(
+                device_id, algo_code.upper(), size_option, iterations, arch_name.upper()
+            )
+        elif ROLE == "EDGE":
+            start_edge(device_id)
+        elif ROLE == "CLOUD":
+            start_cloud(device_id, arch_name.upper())
+        else:
+            raise ValueError(f"Invalid role: {ROLE}")
+
+    except (ValueError, KeyboardInterrupt, SystemExit) as e:
+        print(f"An error occurred: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 
 if __name__ == "__main__":
