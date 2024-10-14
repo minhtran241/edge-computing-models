@@ -166,3 +166,6 @@ cython_debug/
 
 # YOLO 
 *.pt
+
+# VS Code
+.vscode/
