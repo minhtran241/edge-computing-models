@@ -1,23 +1,11 @@
-# import random
+# Resize image from 1.5MB to 4MB
 
-# # Read reviews file and get n random reviews
-# with open("reviews.txt", "r") as file:
-#     neg_reviews = file.readlines()
+from PIL import Image
+import os
 
-# with open("TrainingDataPositive.txt", "r") as file:
-#     pos_reviews = file.readlines()
-
-# n = 30
-# neg_reviews = random.sample(neg_reviews, n)
-# pos_reviews = random.sample(pos_reviews, n)
-
-# # Write the reviews to the file
-# with open("data/reviews/small/reviews.txt", "w") as file:
-#     for review in neg_reviews:
-#         file.write(review)
-#     for review in pos_reviews:
-#         file.write(review)
-
-from setuptools import setup, find_packages
-
-print(find_packages())
+img = Image.open("./iot-edge-cloud/data/license_plates/small/KL-31-B-4000-2MB.jpg")
+img = img.resize((8353 * 2, 2011 * 2))
+img.save("./iot-edge-cloud/data/license_plates/small/KL-31-B-4000-2MB1.jpg")
+print(
+    os.path.getsize("./iot-edge-cloud/data/license_plates/small/KL-31-B-4000-2MB1.jpg")
+)
