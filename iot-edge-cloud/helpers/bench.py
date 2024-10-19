@@ -60,48 +60,48 @@ def write_xlsx(workbook_path, data):
 
 
 data = {
-    "OCR": {
-        "Small Size [11KB Input]": {
-            "54 Iterations": {
-                "Cloud": [8.2173, 0.1495],  # Done
-                # "Edge": [25.2146, 0.0557],
-                "IoT Device": [86.6929, 0.1628],
-            }
-        },
-        "Medium Size [500KB Input]": {
-            "54 Iterations": {
-                "Cloud": [176.2718, 0.1582],  # Done
-                # "Edge": [144.5870, 0.0961],
-                "IoT Device": [881.1115, 0.1827],
-            }
-        },
-        "Large Size [1.5MB Input]": {
-            "54 Iterations": {
-                "Cloud": [177.9795, 0.1616],  # Done
-                # "Edge": [165.7513, 0.1204],
-                "IoT Device": [874.2084, 0.1178],
-            }
-        },
-    },
+    # "OCR": {
+    #     "Small Size [11KB Input]": {
+    #         "54 Iterations": {
+    #             "Cloud": [658.9443, 0.2003],  # Done
+    #             # "Edge": [25.2146, 0.0557],
+    #             "IoT Device": [86.6929, 0.1628],
+    #         }
+    #     },
+    #     "Medium Size [500KB Input]": {
+    #         "54 Iterations": {
+    #             "Cloud": [176.2718, 0.1582],  # Done
+    #             # "Edge": [144.5870, 0.0961],
+    #             "IoT Device": [881.1115, 0.1827],
+    #         }
+    #     },
+    #     "Large Size [1.5MB Input]": {
+    #         "54 Iterations": {
+    #             "Cloud": [177.9795, 0.1616],  # Done
+    #             # "Edge": [165.7513, 0.1204],
+    #             "IoT Device": [874.2084, 0.1178],
+    #         }
+    #     },
+    # },
     "Sentiment Analysis": {
         "Small Size [60 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [11.4662, 0.4190],  # Done
-                # "Edge": [21.3208, 0.1480],
+                "Cloud": [13.1236, 0.1450],  # Done
+                "Edge": [21.8348, 0.3531],  # Done
                 "IoT Device": [146.1732, 0.0904],  # Done
             }
         },
         "Medium Size [200 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [38.5115, 1.6901],  # Done
-                # "Edge": [72.1063, 0.3695],
+                "Cloud": [44.2986, 0.3062],  # Done
+                "Edge": [71.3878, 0.4120],  # Done
                 "IoT Device": [554.8186, 0.1095],  # Done
             }
         },
         "Large Size [1000 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [189.8607, 11.6505],  # Done
-                # "Edge": [358.7299, 1.2207],
+                "Cloud": [224.2649, 1.1818],  # Done
+                "Edge": [351.6553, 1.6612],  # Done
                 "IoT Device": [2781.0971, 0.1013],  # Done
             }
         },
@@ -110,22 +110,22 @@ data = {
         "Small Size [25 KBs Input]": {
             "54 Iterations": {
                 "Cloud": [12.9886, 0.1937],  # Done
-                # "Edge": [27.0720, 0.1543],
-                "IoT Device": [218.6766, 0.0923],  # Done
+                "Edge": [28.1169, 0.1588],  # Done
+                "IoT Device": [212.8859, 0.0504],  # Done
             }
         },
         "Medium Size [50 KBs Input]": {
             "54 Iterations": {
                 "Cloud": [40.3823, 0.5989],  # Done
-                # "Edge": [38.2603, 0.0384],
-                "IoT Device": [684.0986, 0.0960],  # Done
+                "Edge": [87.1243, 0.2297],
+                "IoT Device": [683.7368, 0.0512],  # Done
             }
         },
         "Large Size [100 KBs Input]": {
             "54 Iterations": {
                 "Cloud": [110.3009, 1.6136],  # Done
-                # "Edge": [107.4908, 0.0383],
-                "IoT Device": [1838.5679, 0.0975],  # Done
+                "Edge": [228.9593, 0.2854],  # Done
+                "IoT Device": [1908.5633, 0.0525],  # Done
             }
         },
     },

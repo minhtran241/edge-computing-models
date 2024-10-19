@@ -35,12 +35,12 @@ class EdgeNode:
         self.port = port
         self.sio_client = socketio.Client(
             logger=True,
-            engineio_logger=True,
+            # engineio_logger=True,
         )
         self.sio_server = socketio.Server(
             always_connect=True,
             max_http_buffer_size=10**8,
-            engineio_logger=True,
+            # engineio_logger=True,
             # monitor_clients=False,
             # Set ping interval to infinity to prevent disconnections
             ping_interval=10**8,
