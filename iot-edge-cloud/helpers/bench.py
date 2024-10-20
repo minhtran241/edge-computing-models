@@ -86,46 +86,46 @@ data = {
     "Sentiment Analysis": {
         "Small Size [60 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [13.1236, 0.1450],  # Done
-                "Edge": [21.8348, 0.3531],  # Done
-                "IoT Device": [146.1732, 0.0904],  # Done
+                "Cloud": [10.9872, 0.1175],
+                "Edge": [21.5537, 0.1935],
+                "IoT Device": [166.8417, 0.0549],
             }
         },
         "Medium Size [200 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [44.2986, 0.3062],  # Done
-                "Edge": [71.3878, 0.4120],  # Done
-                "IoT Device": [554.8186, 0.1095],  # Done
+                "Cloud": [37.3203, 0.2778],
+                "Edge": [70.0550, 0.3392],
+                "IoT Device": [569.3127, 0.0550],
             }
         },
         "Large Size [1000 Reviews Input]": {
             "54 Iterations": {
-                "Cloud": [224.2649, 1.1818],  # Done
-                "Edge": [351.6553, 1.6612],  # Done
-                "IoT Device": [2781.0971, 0.1013],  # Done
+                "Cloud": [188.8697, 1.2630],
+                "Edge": [362.3646, 1.6529],
+                "IoT Device": [2765.0394, 0.0546],
             }
         },
     },
     "Smith-Waterman": {
         "Small Size [25 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [12.9886, 0.1937],  # Done
-                "Edge": [28.1169, 0.1588],  # Done
-                "IoT Device": [212.8859, 0.0504],  # Done
+                "Cloud": [12.8073, 0.0865],
+                "Edge": [28.3816, 0.1397],
+                "IoT Device": [212.8859, 0.0504],
             }
         },
         "Medium Size [50 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [40.3823, 0.5989],  # Done
-                "Edge": [87.1243, 0.2297],
-                "IoT Device": [683.7368, 0.0512],  # Done
+                "Cloud": [38.6097, 0.1577],
+                "Edge": [85.3803, 0.2060],
+                "IoT Device": [683.7368, 0.0512],
             }
         },
         "Large Size [100 KBs Input]": {
             "54 Iterations": {
-                "Cloud": [110.3009, 1.6136],  # Done
-                "Edge": [228.9593, 0.2854],  # Done
-                "IoT Device": [1908.5633, 0.0525],  # Done
+                "Cloud": [107.0593, 0.1870],
+                "Edge": [233.5064, 0.2374],
+                "IoT Device": [1908.5633, 0.0525],
             }
         },
     },
