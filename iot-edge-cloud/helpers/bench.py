@@ -63,23 +63,23 @@ data = {
     "OCR": {
         "Small Size [11KB Input]": {
             "54 Iterations": {
-                "Cloud": [176.7999, 0.0776],  # Done
-                # "Edge": [25.2146, 0.0557],
-                "IoT Device": [887.3779, 0.1118],
+                "Cloud": [43.1326, 0.0562],
+                "Edge": [37.5978, 0.1524],  # Done
+                "IoT Device": [220.9412, 0.1010],  # Done
             }
         },
         "Medium Size [500KB Input]": {
             "54 Iterations": {
-                "Cloud": [176.2718, 0.1582],  # Done
-                # "Edge": [144.5870, 0.0961],
-                "IoT Device": [881.1115, 0.1827],
+                "Cloud": [143.8425, 0.0970],
+                "Edge": [144.7311, 0.1627],  # Done
+                "IoT Device": [894.8029, 0.1079],  # Done
             }
         },
         "Large Size [1.5MB Input]": {
             "54 Iterations": {
-                "Cloud": [177.9795, 0.1616],  # Done
+                "Cloud": [536.3999, 0.1748],
                 # "Edge": [165.7513, 0.1204],
-                "IoT Device": [874.2084, 0.1178],
+                # "IoT Device": [874.2084, 0.1178],
             }
         },
     },
