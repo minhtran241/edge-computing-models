@@ -60,29 +60,29 @@ def write_xlsx(workbook_path, data):
 
 
 data = {
-    # "OCR": {
-    #     "Small Size [11KB Input]": {
-    #         "54 Iterations": {
-    #             "Cloud": [658.9443, 0.2003],  # Done
-    #             # "Edge": [25.2146, 0.0557],
-    #             "IoT Device": [86.6929, 0.1628],
-    #         }
-    #     },
-    #     "Medium Size [500KB Input]": {
-    #         "54 Iterations": {
-    #             "Cloud": [176.2718, 0.1582],  # Done
-    #             # "Edge": [144.5870, 0.0961],
-    #             "IoT Device": [881.1115, 0.1827],
-    #         }
-    #     },
-    #     "Large Size [1.5MB Input]": {
-    #         "54 Iterations": {
-    #             "Cloud": [177.9795, 0.1616],  # Done
-    #             # "Edge": [165.7513, 0.1204],
-    #             "IoT Device": [874.2084, 0.1178],
-    #         }
-    #     },
-    # },
+    "OCR": {
+        "Small Size [11KB Input]": {
+            "54 Iterations": {
+                "Cloud": [176.7999, 0.0776],  # Done
+                # "Edge": [25.2146, 0.0557],
+                "IoT Device": [887.3779, 0.1118],
+            }
+        },
+        "Medium Size [500KB Input]": {
+            "54 Iterations": {
+                "Cloud": [176.2718, 0.1582],  # Done
+                # "Edge": [144.5870, 0.0961],
+                "IoT Device": [881.1115, 0.1827],
+            }
+        },
+        "Large Size [1.5MB Input]": {
+            "54 Iterations": {
+                "Cloud": [177.9795, 0.1616],  # Done
+                # "Edge": [165.7513, 0.1204],
+                "IoT Device": [874.2084, 0.1178],
+            }
+        },
+    },
     "Sentiment Analysis": {
         "Small Size [60 Reviews Input]": {
             "54 Iterations": {
