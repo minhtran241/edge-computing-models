@@ -1,7 +1,6 @@
 from typing import Dict
 from helpers.common import fimg_from_dir
 from helpers.ocr import ocr_license_plate
-from helpers.yolo import yolo_inference
 from helpers.sw import collect_sw_data, smith_waterman
 from helpers.sa import collect_sa_data, sentiment_analysis
 
@@ -29,13 +28,5 @@ DATA_CONFIG: Dict[str, Dict[str, str]] = {
         "avail_sizes": ["small", "medium", "large"],
         "preprocess": fimg_from_dir,
         "process": ocr_license_plate,
-    },
-    "yolo": {
-        "name": "Object Detection",
-        "data_dir": "iot-edge-cloud/data/coco128_images",
-        "data_type": "image",
-        "avail_sizes": ["small", "large"],
-        "preprocess": fimg_from_dir,
-        "process": yolo_inference,
     },
 }

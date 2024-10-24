@@ -1,4 +1,3 @@
-import sys
 import eventlet
 import socketio
 import queue

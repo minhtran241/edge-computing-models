@@ -21,7 +21,6 @@ class Algorithm(Enum):
     SW: Dict[str, Any] = DATA_CONFIG["sw"]
     SA: Dict[str, Any] = DATA_CONFIG["sa"]
     OCR: Dict[str, Any] = DATA_CONFIG["ocr"]
-    YOLO: Dict[str, Any] = DATA_CONFIG["yolo"]
 
 
 import logging
